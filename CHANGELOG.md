@@ -11,6 +11,7 @@ All notable changes to slimsico. Newest first. Dates are commit dates.
 
 ### Fixed
 - Hands no longer pass through the floor during the push-up: the elbows lift first, the hips rise earlier, and the hands-and-knees height was trimmed so the hands rest on the grid rather than floating.
+- Feet no longer sink into the floor in the crouch (frames 106-118): the crouch root height was raised. The lowest point of the body is now checked on every frame of the shot and never goes below the grid.
 - The camera falls beside him, settles at ground level for the landing, then dollies round to a three-quarter view, tracking his head throughout.
 - `renders/opening.mp4`: the shot rendered in EEVEE at 1080p.
 

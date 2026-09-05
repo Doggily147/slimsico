@@ -124,7 +124,7 @@ key(rig, F_RISE, loc=(0, -0.6, LIE_Z), rot=(R90, 0, 0), scale=(1, 1, 1))
 # forward of where his hips were.
 key(rig, F_RISE + 6, loc=(0, -0.6, 2.0), rot=(R90, 0, 0))                    # chest lifting on the hands
 key(rig, F_PUSH, loc=(0, -0.6, 2.1), rot=(R90, 0, 0))                        # hands and knees
-key(rig, F_CROUCH, loc=(0, -1.6, -0.55), rot=(math.radians(38), 0, 0))        # crouched on his feet
+key(rig, F_CROUCH, loc=(0, -1.6, 0.15), rot=(math.radians(38), 0, 0))         # crouched on his feet
 key(rig, F_UP - 4, loc=(0, -2.0, 0.0), rot=(math.radians(-6), 0, 0))          # overshoots upright
 key(rig, F_UP, loc=(0, -2.0, 0.0), rot=(0, 0, 0))
 # a relieved little hop, then turn to face the camera
