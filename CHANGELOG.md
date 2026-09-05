@@ -2,6 +2,16 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-05 - Skybox visible in the viewport, physical world sky
+
+### Fixed
+- The skybox cube sits 1500 studs out but every 3D viewport only drew to 1000, so the sky never showed on screen. Viewport clip distance is now 10000 in the saved file.
+
+### Changed
+- Skybox gradient deepened: less white haze at the horizon, richer blue toward the zenith.
+- World background is now a physical multiple-scattering sky matched to the sun direction (for lighting and reflections; the camera sees the skybox cube). Sun lamp lowered from 9 to 5 to suit.
+- Material Preview keeps studio lighting so the character's yellow stays true; the skybox is geometry and shows regardless.
+
 ## 2026-09-05 - More natural face (`2a4f3a8`)
 
 ### Changed

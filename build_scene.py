@@ -82,9 +82,9 @@ height.inputs["From Max"].default_value = 1.0
 ramp = nt.nodes.new("ShaderNodeValToRGB")
 cr = ramp.color_ramp
 cr.elements[0].position = 0.0; cr.elements[0].color = (0.42, 0.50, 0.58, 1)   # below horizon
-e = cr.elements.new(0.50); e.color = (0.82, 0.90, 0.98, 1)                    # horizon haze
-e = cr.elements.new(0.56); e.color = (0.40, 0.66, 0.98, 1)
-cr.elements[-1].position = 1.0; cr.elements[-1].color = (0.10, 0.34, 0.88, 1)  # zenith
+e = cr.elements.new(0.50); e.color = (0.74, 0.86, 0.98, 1)                    # horizon haze
+e = cr.elements.new(0.545); e.color = (0.36, 0.63, 0.97, 1)
+cr.elements[-1].position = 1.0; cr.elements[-1].color = (0.08, 0.32, 0.86, 1)  # zenith
 
 # clouds: noise on direction, only above horizon
 noise = nt.nodes.new("ShaderNodeTexNoise")
@@ -150,18 +150,31 @@ sky.data.materials.append(m)
 bpy.ops.object.light_add(type="SUN", location=(0, 0, 50))
 sun = bpy.context.object
 sun.name = "Sun"
-sun.data.energy = 9.0
+sun.data.energy = 5.0
 sun.data.color = (1.0, 0.97, 0.9)
 sun.data.angle = math.radians(1.5)
 # a sun lamp shines along its local -Z; aim -Z at -SUN_DIR so light comes FROM the sun disc
 sun.rotation_euler = (math.acos(SUN_DIR[2]), 0, math.atan2(SUN_DIR[1], SUN_DIR[0]) + math.pi / 2)
 
+# world: a physical sky that matches the sun, so lighting and reflections agree
+# with the skybox cube (which is what the camera actually sees)
 world = bpy.data.worlds.new("World")
 scene.world = world
 world.use_nodes = True
-bg = world.node_tree.nodes["Background"]
-bg.inputs["Color"].default_value = (0.75, 0.82, 0.92, 1)
-bg.inputs["Strength"].default_value = 1.0
+wnt = world.node_tree
+for n in list(wnt.nodes):
+    wnt.nodes.remove(n)
+sky_tex = wnt.nodes.new("ShaderNodeTexSky")
+sky_tex.sky_type = "MULTIPLE_SCATTERING"
+sky_tex.sun_elevation = math.asin(SUN_DIR[2])
+sky_tex.sun_rotation = math.atan2(SUN_DIR[0], SUN_DIR[1])
+sky_tex.sun_size = math.radians(1.0)
+sky_tex.sun_intensity = 0.3
+bg = wnt.nodes.new("ShaderNodeBackground")
+bg.inputs["Strength"].default_value = 0.35
+wout = wnt.nodes.new("ShaderNodeOutputWorld")
+wnt.links.new(sky_tex.outputs["Color"], bg.inputs["Color"])
+wnt.links.new(bg.outputs["Background"], wout.inputs["Surface"])
 
 # ------------------------------------------------------------------ camera
 bpy.ops.object.camera_add(location=(-60, -120, 18))
