@@ -2,10 +2,14 @@
 crown to the open slimsico scene and switches the baseplate to the numbered
 grid texture from make_tile_texture.py.
 
-The body is built from smooth capsules and ellipsoids (egg-shaped head,
-chunky soft torso, sausage limbs with mitten hands) so every limb is its own
-piece but nothing is faceted. Run inside Blender with slimsico.blend open
-(Text editor, or via the MCP bridge). Re-running replaces the character.
+The body is ONE connected mesh: a joint skeleton is skinned with the Skin
+modifier (clean quad topology that flows from head to toes) and smoothed with
+subdivision surfaces, then an armature is generated from the same skeleton so
+the character can be posed. Eyes, mouth and crown are separate objects parented
+to the body, as in a normal character rig.
+
+Run inside Blender with slimsico.blend open (Text editor, or via the MCP
+bridge). Re-running replaces the character.
 """
 import bmesh
 import bpy
@@ -64,7 +68,7 @@ if "Character" in bpy.data.collections:
     for o in list(col.objects):
         bpy.data.objects.remove(o, do_unlink=True)
     bpy.data.collections.remove(col)
-for block in (bpy.data.meshes, bpy.data.metaballs):
+for block in (bpy.data.meshes, bpy.data.metaballs, bpy.data.armatures):
     for d in list(block):
         if d.users == 0:
             block.remove(d)
@@ -78,111 +82,129 @@ GOLD = material("CrownGold", (1.0, 0.80, 0.25), rough=0.5, metallic=0.7)
 GEM_RED = material("CrownGemRed", (0.85, 0.10, 0.12), rough=0.4)
 GEM_BLUE = material("CrownGemBlue", (0.12, 0.35, 0.90), rough=0.4)
 
-root = bpy.data.objects.new("Character", None)
-root.empty_display_type = "PLAIN_AXES"
-root.empty_display_size = 1.0
-col.objects.link(root)
 
-
-def link(obj, parent=root):
+def link(obj, parent=None):
     for c in obj.users_collection:
         c.objects.unlink(obj)
     col.objects.link(obj)
-    obj.parent = parent
-    obj.matrix_parent_inverse = parent.matrix_world.inverted()
+    if parent is not None:
+        obj.parent = parent
+        obj.matrix_parent_inverse = parent.matrix_world.inverted()
     return obj
 
 
-def add_mesh(name, bm, mat, loc=(0, 0, 0), rot=None, scale=(1, 1, 1), parent=root):
-    mesh = bpy.data.meshes.new(name)
-    bm.to_mesh(mesh)
-    bm.free()
-    mesh.shade_smooth()
-    o = bpy.data.objects.new(name, mesh)
-    o.location = loc
+# ------------------------------------------------------------ body skeleton
+# Each joint: name, position, (radius across, radius front-to-back).
+# The Skin modifier wraps this graph in one continuous quad mesh.
+JOINTS = {
+    "pelvis":    ((0, 0, 3.55), (1.18, 0.88)),
+    "belly":     ((0, 0, 4.45), (1.26, 0.96)),
+    "chest":     ((0, 0, 5.45), (1.22, 0.90)),
+    "shoulders": ((0, 0, 6.25), (1.12, 0.76)),
+    "neck":      ((0, 0, 6.85), (0.50, 0.48)),
+    "head_base": ((0, 0, 7.45), (0.90, 0.86)),
+    "head":      ((0, 0, 8.15), (1.12, 1.02)),
+    "head_top":  ((0, 0, 8.85), (0.82, 0.78)),
+}
+CHAIN = [("pelvis", "belly"), ("belly", "chest"), ("chest", "shoulders"),
+         ("shoulders", "neck"), ("neck", "head_base"), ("head_base", "head"), ("head", "head_top")]
+for s, side in ((-1, "L"), (1, "R")):
+    JOINTS.update({
+        "shoulder" + side: ((s * 1.30, 0.0, 6.00), (0.56, 0.54)),
+        "elbow" + side:    ((s * 1.78, -0.10, 4.95), (0.46, 0.46)),
+        "wrist" + side:    ((s * 2.10, -0.28, 3.95), (0.42, 0.42)),
+        "hand" + side:     ((s * 2.28, -0.40, 3.40), (0.54, 0.36)),
+        "hip" + side:      ((s * 0.62, 0.0, 3.10), (0.58, 0.56)),
+        "knee" + side:     ((s * 0.66, 0.0, 1.85), (0.50, 0.50)),
+        "ankle" + side:    ((s * 0.70, 0.0, 0.75), (0.44, 0.44)),
+        "foot" + side:     ((s * 0.74, -0.80, 0.45), (0.50, 0.40)),
+    })
+    CHAIN += [("shoulders", "shoulder" + side), ("shoulder" + side, "elbow" + side),
+              ("elbow" + side, "wrist" + side), ("wrist" + side, "hand" + side),
+              ("pelvis", "hip" + side), ("hip" + side, "knee" + side),
+              ("knee" + side, "ankle" + side), ("ankle" + side, "foot" + side)]
+
+body_mesh = bpy.data.meshes.new("CharacterBody")
+bm = bmesh.new()
+verts = {name: bm.verts.new(pos) for name, (pos, _) in JOINTS.items()}
+for a, b in CHAIN:
+    bm.edges.new((verts[a], verts[b]))
+bm.verts.index_update()
+order = list(JOINTS.keys())
+bm.to_mesh(body_mesh)
+bm.free()
+
+body = bpy.data.objects.new("Character", body_mesh)
+scene.collection.objects.link(body)
+link(body)
+body.data.materials.append(YELLOW)
+
+skin = body.modifiers.new("Skin", "SKIN")
+skin.use_smooth_shade = True
+skin.branch_smoothing = 1.0
+# radii live in the mesh's skin layer, which the modifier creates on add
+for i, name in enumerate(order):
+    sv = body.data.skin_vertices[0].data[i]
+    sv.radius = JOINTS[name][1]
+    sv.use_root = (name == "pelvis")
+sub = body.modifiers.new("Subdivision", "SUBSURF")
+sub.levels = 2
+sub.render_levels = 3
+smooth = body.modifiers.new("Polish", "CORRECTIVE_SMOOTH")
+smooth.factor = 0.5
+smooth.iterations = 8
+smooth.smooth_type = "LENGTH_WEIGHTED"
+body.data.shade_smooth()
+
+# armature from the same skeleton so the character can be posed
+bpy.ops.object.select_all(action="DESELECT")
+body.select_set(True)
+bpy.context.view_layer.objects.active = body
+armature = None
+try:
+    bpy.ops.object.skin_armature_create(modifier="Skin")
+    armature = bpy.context.object
+    armature.name = "CharacterRig"
+    armature.show_in_front = False              # bones stay inside the body
+    armature.data.display_type = "STICK"
+    link(armature)
+    body.parent = armature
+    body.matrix_parent_inverse = armature.matrix_world.inverted()
+    # keep the armature deform last so the skin/subdivision shape is what gets posed
+    arm_mod = next(m for m in body.modifiers if m.type == "ARMATURE")
+    body.modifiers.move(body.modifiers.find(arm_mod.name), len(body.modifiers) - 1)
+except RuntimeError as ex:
+    print("armature skipped:", ex)
+
+# ------------------------------------------------------------ face
+depsgraph = bpy.context.evaluated_depsgraph_get()
+body_eval = body.evaluated_get(depsgraph)
+HEAD_C = Vector(JOINTS["head"][0])
+
+
+def on_body(point):
+    ok, loc, normal, _ = body_eval.closest_point_on_mesh(Vector(point))
+    return loc, normal.normalized()
+
+
+def sphere(name, radius, loc, mat, scale=(1, 1, 1), rot=None, parent=body):
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=radius, segments=32, ring_count=16, location=loc)
+    o = bpy.context.object
+    o.name = name
     o.scale = scale
     if rot is not None:
         o.rotation_mode = "QUATERNION"
         o.rotation_quaternion = rot
     o.data.materials.append(mat)
-    scene.collection.objects.link(o)
+    bpy.ops.object.shade_smooth()
     return link(o, parent)
 
 
-def ellipsoid(name, radius, loc, mat, scale=(1, 1, 1), rot=None, parent=root, pear=0.0):
-    """Smooth sphere; `pear` > 0 widens the lower half for a soft belly."""
-    bm = bmesh.new()
-    bmesh.ops.create_uvsphere(bm, u_segments=40, v_segments=24, radius=radius)
-    if pear:
-        for v in bm.verts:
-            t = (1 - v.co.z / radius) / 2            # 0 at the top, 1 at the bottom
-            f = 1 + pear * math.sin(math.pi * min(1.0, t * 1.15))
-            v.co.x *= f
-            v.co.y *= f
-    return add_mesh(name, bm, mat, loc, rot, scale, parent)
-
-
-def capsule(name, start, end, radius, mat, tip=1.0):
-    """Smooth sausage from start to end. `tip` < 1 makes the far end slimmer."""
-    start, end = Vector(start), Vector(end)
-    d = end - start
-    half = max(0.0, d.length / 2 - radius)
-    bm = bmesh.new()
-    bmesh.ops.create_uvsphere(bm, u_segments=32, v_segments=20, radius=radius)
-    for v in bm.verts:
-        if v.co.z >= 0:
-            v.co.x *= tip
-            v.co.y *= tip
-            v.co.z = v.co.z * tip + half
-        else:
-            v.co.z -= half
-    return add_mesh(name, bm, mat, (start + end) / 2, d.to_track_quat("Z", "Y"))
-
-
-# ------------------------------------------------------------ proportions
-# Tall: about 9.5 studs from the soles to the top of the head.
-HEAD_R = 1.15
-HEAD_SCALE = Vector((1.0, 0.94, 1.14))            # egg shaped, a little taller than wide
-HEAD_C = Vector((0, 0, 8.25))
-SHOULDER_Z = 6.35
-HIP_Z = 3.55
-
-ellipsoid("Head", HEAD_R, HEAD_C, YELLOW, scale=HEAD_SCALE)
-ellipsoid("Neck", 0.5, (0, 0, 7.0), YELLOW, scale=(1, 1, 0.7))
-ellipsoid("Torso", 1.0, (0, 0, 5.25), YELLOW, scale=(1.08, 0.82, 1.55), pear=0.16)
-ellipsoid("Hips", 1.0, (0, 0, 3.75), YELLOW, scale=(1.12, 0.84, 0.72))
-
-# arms: relaxed, hanging a little out from the body, mitten hands
 for s, side in ((-1, "L"), (1, "R")):
-    shoulder = Vector((s * 1.05, 0, SHOULDER_Z))
-    direction = Vector((s * math.sin(math.radians(24)), -0.08, -math.cos(math.radians(24)))).normalized()
-    capsule("Arm" + side, shoulder, shoulder + direction * 3.1, 0.38, YELLOW, tip=0.9)
-    hand = shoulder + direction * 3.35
-    ellipsoid("Hand" + side, 0.46, hand, YELLOW, scale=(0.95, 0.72, 1.15),
-              rot=direction.to_track_quat("-Z", "Y"))
+    loc, n = on_body((s * 0.42, -2.0, HEAD_C.z + 0.25))
+    sphere("Eye" + side, 0.14, loc + n * 0.01, DARK, scale=(1, 1, 0.45), rot=n.to_track_quat("Z", "Y"))
 
-# legs: slightly apart, rounded feet pointing forward
-for s, side in ((-1, "L"), (1, "R")):
-    hip = Vector((s * 0.55, 0, HIP_Z))
-    ankle = Vector((s * 0.68, 0, 0.85))
-    capsule("Leg" + side, hip, ankle, 0.42, YELLOW, tip=0.92)
-    ellipsoid("Foot" + side, 0.55, (s * 0.7, -0.32, 0.45), YELLOW, scale=(1.0, 1.55, 0.8))
-
-# ------------------------------------------------------------ face
-def on_head(point):
-    """Project a point onto the egg-shaped head; returns (surface point, outward normal)."""
-    local = Vector([(a - c) / sc for a, c, sc in zip(point, HEAD_C, HEAD_SCALE)]).normalized()
-    surface = HEAD_C + Vector([l * sc * HEAD_R for l, sc in zip(local, HEAD_SCALE)])
-    normal = Vector([l / sc for l, sc in zip(local, HEAD_SCALE)]).normalized()
-    return surface, normal
-
-
-for s, side in ((-1, "L"), (1, "R")):
-    loc, n = on_head((s * 0.42, -1.2, 8.45))
-    ellipsoid("Eye" + side, 0.14, loc + n * 0.02, DARK, scale=(1, 1, 0.45),
-              rot=n.to_track_quat("Z", "Y"))
-
-loc, n = on_head((0, -1.2, 7.75))
+loc, n = on_body((0, -2.0, HEAD_C.z - 0.45))
 bpy.ops.mesh.primitive_torus_add(major_radius=0.33, minor_radius=0.055,
                                  major_segments=40, minor_segments=12, location=loc + n * 0.02)
 mouth = bpy.context.object
@@ -196,11 +218,11 @@ mb.free()
 mouth.name = "Mouth"
 mouth.data.shade_smooth()
 mouth.data.materials.append(DARK)
-link(mouth)
+link(mouth, body)
 
 # ------------------------------------------------------------ crown
 SEGMENTS, PEAKS = 48, 6
-R_CROWN = 0.82
+R_CROWN = 0.84
 BAND_Z, VALLEY_Z, PEAK_Z = 0.0, 0.32, 0.8
 cb = bmesh.new()
 bottom, top = [], []
@@ -216,25 +238,35 @@ for i in range(SEGMENTS):
 for i in range(SEGMENTS):
     j = (i + 1) % SEGMENTS
     cb.faces.new((bottom[i], bottom[j], top[j], top[i]))
-# the band is where the head is R_CROWN wide; tilt it a touch to one side
-h = HEAD_R * HEAD_SCALE.z * math.sqrt(max(0.0, 1 - (R_CROWN / (HEAD_R * HEAD_SCALE.x)) ** 2))
-crown = add_mesh("Crown", cb, GOLD, (0.04, 0, HEAD_C.z + h - 0.03))
-crown.data.shade_flat()
-crown.rotation_mode = "XYZ"
-crown.rotation_euler = (math.radians(3), math.radians(8), 0)
+crown_mesh = bpy.data.meshes.new("Crown")
+cb.to_mesh(crown_mesh)
+cb.free()
+crown = bpy.data.objects.new("Crown", crown_mesh)
+scene.collection.objects.link(crown)
+crown.data.materials.append(GOLD)
 sol = crown.modifiers.new("Solidify", "SOLIDIFY")
 sol.thickness = 0.07
 sol.offset = 0
 bev = crown.modifiers.new("Bevel", "BEVEL")
 bev.width = 0.015
 bev.segments = 2
+# find where the head is R_CROWN wide by probing the skinned surface
+top_z = max((body_eval.matrix_world @ v.co).z for v in body_eval.data.vertices)
+band_z = top_z - 0.3
+for _ in range(40):
+    loc, _n = on_body((R_CROWN, 0, band_z))
+    if loc.x >= R_CROWN - 0.01:
+        break
+    band_z -= 0.03
+crown.location = (0.04, 0, band_z - 0.04)
+crown.rotation_euler = (math.radians(3), math.radians(8), 0)
+link(crown, body)
 for i in range(PEAKS):
     a = 2 * math.pi * (i * per_peak) / SEGMENTS
-    ellipsoid("Gem%d" % (i + 1), 0.085, (R_CROWN * math.cos(a), R_CROWN * math.sin(a), 0.2),
-              GEM_RED if i % 2 == 0 else GEM_BLUE, parent=crown)
+    sphere("Gem%d" % (i + 1), 0.085, (R_CROWN * math.cos(a), R_CROWN * math.sin(a), 0.2),
+           GEM_RED if i % 2 == 0 else GEM_BLUE, parent=crown)
+    bpy.context.object.matrix_parent_inverse.identity()
 
 bpy.ops.object.select_all(action="DESELECT")
-for o in col.objects:
-    o.select_set(True)
-bpy.context.view_layer.objects.active = bpy.data.objects["Head"]
-print("built", len(col.objects), "objects")
+bpy.context.view_layer.objects.active = body
+print("built", len(col.objects), "objects; armature:", armature.name if armature else None)
