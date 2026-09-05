@@ -1,10 +1,11 @@
-"""Adds a low-poly, matte yellow, Wobbly Life styled character with a crown to
-the open slimsico scene and switches the baseplate to the numbered grid
-texture from make_tile_texture.py.
+"""Adds a tall, smooth, matte yellow Human Fall Flat styled character with a
+crown to the open slimsico scene and switches the baseplate to the numbered
+grid texture from make_tile_texture.py.
 
-Every body part is its own low-segment primitive, flat shaded, so the limbs
-read as separate pieces. Run inside Blender with slimsico.blend open (Text
-editor, or via the MCP bridge). Re-running replaces the character.
+The body is built from smooth capsules and ellipsoids (egg-shaped head,
+chunky soft torso, sausage limbs with mitten hands) so every limb is its own
+piece but nothing is faceted. Run inside Blender with slimsico.blend open
+(Text editor, or via the MCP bridge). Re-running replaces the character.
 """
 import bmesh
 import bpy
@@ -92,82 +93,98 @@ def link(obj, parent=root):
     return obj
 
 
-def finish(obj, name, mat, parent=root):
-    obj.name = name
-    obj.data.materials.append(mat)
-    bpy.ops.object.shade_flat()                      # visible facets = low poly look
-    return link(obj, parent)
-
-
-def sphere(name, radius, loc, mat, segments=16, rings=10, scale=(1, 1, 1), rot=None, parent=root):
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=radius, segments=segments, ring_count=rings, location=loc)
-    o = bpy.context.object
+def add_mesh(name, bm, mat, loc=(0, 0, 0), rot=None, scale=(1, 1, 1), parent=root):
+    mesh = bpy.data.meshes.new(name)
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.shade_smooth()
+    o = bpy.data.objects.new(name, mesh)
+    o.location = loc
     o.scale = scale
     if rot is not None:
         o.rotation_mode = "QUATERNION"
         o.rotation_quaternion = rot
-    return finish(o, name, mat, parent)
+    o.data.materials.append(mat)
+    scene.collection.objects.link(o)
+    return link(o, parent)
 
 
-def limb(name, start, end, radius, mat, sides=10):
-    """A low-poly cylinder from start to end, capped by a small joint sphere."""
+def ellipsoid(name, radius, loc, mat, scale=(1, 1, 1), rot=None, parent=root, pear=0.0):
+    """Smooth sphere; `pear` > 0 widens the lower half for a soft belly."""
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=40, v_segments=24, radius=radius)
+    if pear:
+        for v in bm.verts:
+            t = (1 - v.co.z / radius) / 2            # 0 at the top, 1 at the bottom
+            f = 1 + pear * math.sin(math.pi * min(1.0, t * 1.15))
+            v.co.x *= f
+            v.co.y *= f
+    return add_mesh(name, bm, mat, loc, rot, scale, parent)
+
+
+def capsule(name, start, end, radius, mat, tip=1.0):
+    """Smooth sausage from start to end. `tip` < 1 makes the far end slimmer."""
     start, end = Vector(start), Vector(end)
     d = end - start
-    bpy.ops.mesh.primitive_cylinder_add(vertices=sides, radius=radius, depth=d.length,
-                                        location=(start + end) / 2)
-    o = bpy.context.object
-    o.rotation_mode = "QUATERNION"
-    o.rotation_quaternion = d.to_track_quat("Z", "Y")
-    return finish(o, name, mat)
+    half = max(0.0, d.length / 2 - radius)
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=32, v_segments=20, radius=radius)
+    for v in bm.verts:
+        if v.co.z >= 0:
+            v.co.x *= tip
+            v.co.y *= tip
+            v.co.z = v.co.z * tip + half
+        else:
+            v.co.z -= half
+    return add_mesh(name, bm, mat, (start + end) / 2, d.to_track_quat("Z", "Y"))
 
 
 # ------------------------------------------------------------ proportions
-# Taller than the reference: about 7 studs from soles to the top of the head.
-HEAD_R = 1.05
-HEAD_C = Vector((0, 0, 6.0))
-TORSO_C = Vector((0, 0, 3.75))
-SHOULDER = 4.55
-HIP = 2.65
+# Tall: about 9.5 studs from the soles to the top of the head.
+HEAD_R = 1.15
+HEAD_SCALE = Vector((1.0, 0.94, 1.14))            # egg shaped, a little taller than wide
+HEAD_C = Vector((0, 0, 8.25))
+SHOULDER_Z = 6.35
+HIP_Z = 3.55
 
-# head and torso
-sphere("Head", HEAD_R, HEAD_C, YELLOW)
-sphere("Torso", 1.0, TORSO_C, YELLOW, segments=14, rings=9, scale=(0.95, 0.78, 1.2))
-limb("Neck", (0, 0, 4.75), (0, 0, 5.15), 0.28, YELLOW, sides=8)
+ellipsoid("Head", HEAD_R, HEAD_C, YELLOW, scale=HEAD_SCALE)
+ellipsoid("Neck", 0.5, (0, 0, 7.0), YELLOW, scale=(1, 1, 0.7))
+ellipsoid("Torso", 1.0, (0, 0, 5.25), YELLOW, scale=(1.08, 0.82, 1.55), pear=0.16)
+ellipsoid("Hips", 1.0, (0, 0, 3.75), YELLOW, scale=(1.12, 0.84, 0.72))
 
-# arms: out to the sides and raised a little, like the reference pose
+# arms: relaxed, hanging a little out from the body, mitten hands
 for s, side in ((-1, "L"), (1, "R")):
-    shoulder = Vector((s * 0.85, 0, SHOULDER))
-    direction = Vector((s * math.cos(math.radians(18)), 0, math.sin(math.radians(18))))
-    elbow = shoulder + direction * 0.22
-    wrist = shoulder + direction * 2.05
-    sphere("Shoulder" + side, 0.34, shoulder, YELLOW, segments=10, rings=6)
-    limb("Arm" + side, elbow, wrist, 0.24, YELLOW)
-    sphere("Hand" + side, 0.36, shoulder + direction * 2.25, YELLOW, segments=10, rings=6)
+    shoulder = Vector((s * 1.05, 0, SHOULDER_Z))
+    direction = Vector((s * math.sin(math.radians(24)), -0.08, -math.cos(math.radians(24)))).normalized()
+    capsule("Arm" + side, shoulder, shoulder + direction * 3.1, 0.38, YELLOW, tip=0.9)
+    hand = shoulder + direction * 3.35
+    ellipsoid("Hand" + side, 0.46, hand, YELLOW, scale=(0.95, 0.72, 1.15),
+              rot=direction.to_track_quat("-Z", "Y"))
 
-# legs: straight down with a small stance, chunky feet
+# legs: slightly apart, rounded feet pointing forward
 for s, side in ((-1, "L"), (1, "R")):
-    hip = Vector((s * 0.42, 0, HIP))
-    ankle = Vector((s * 0.55, 0, 0.45))
-    sphere("Hip" + side, 0.36, hip, YELLOW, segments=10, rings=6)
-    limb("Leg" + side, hip - Vector((0, 0, 0.2)), ankle, 0.27, YELLOW)
-    sphere("Foot" + side, 0.5, (s * 0.55, -0.18, 0.24), YELLOW, segments=10, rings=6, scale=(0.9, 1.25, 0.48))
+    hip = Vector((s * 0.55, 0, HIP_Z))
+    ankle = Vector((s * 0.68, 0, 0.85))
+    capsule("Leg" + side, hip, ankle, 0.42, YELLOW, tip=0.92)
+    ellipsoid("Foot" + side, 0.55, (s * 0.7, -0.32, 0.45), YELLOW, scale=(1.0, 1.55, 0.8))
 
 # ------------------------------------------------------------ face
 def on_head(point):
-    """Project a point onto the head sphere; returns (surface point, outward normal)."""
-    n = (Vector(point) - HEAD_C).normalized()
-    return HEAD_C + n * HEAD_R, n
+    """Project a point onto the egg-shaped head; returns (surface point, outward normal)."""
+    local = Vector([(a - c) / sc for a, c, sc in zip(point, HEAD_C, HEAD_SCALE)]).normalized()
+    surface = HEAD_C + Vector([l * sc * HEAD_R for l, sc in zip(local, HEAD_SCALE)])
+    normal = Vector([l / sc for l, sc in zip(local, HEAD_SCALE)]).normalized()
+    return surface, normal
 
 
 for s, side in ((-1, "L"), (1, "R")):
-    loc, n = on_head((s * 0.4, -1.0, 6.2))
-    sphere("Eye" + side, 0.13, loc + n * 0.02, DARK, segments=10, rings=6,
-           scale=(1, 1, 0.5), rot=n.to_track_quat("Z", "Y"))
+    loc, n = on_head((s * 0.42, -1.2, 8.45))
+    ellipsoid("Eye" + side, 0.14, loc + n * 0.02, DARK, scale=(1, 1, 0.45),
+              rot=n.to_track_quat("Z", "Y"))
 
-# mouth: a small low-poly smile arc pressed onto the face
-loc, n = on_head((0, -1.0, 5.55))
-bpy.ops.mesh.primitive_torus_add(major_radius=0.3, minor_radius=0.05,
-                                 major_segments=16, minor_segments=6, location=loc + n * 0.02)
+loc, n = on_head((0, -1.2, 7.75))
+bpy.ops.mesh.primitive_torus_add(major_radius=0.33, minor_radius=0.055,
+                                 major_segments=40, minor_segments=12, location=loc + n * 0.02)
 mouth = bpy.context.object
 mouth.rotation_mode = "QUATERNION"
 mouth.rotation_quaternion = n.to_track_quat("Z", "Y")
@@ -176,13 +193,15 @@ mb.from_mesh(mouth.data)
 bmesh.ops.delete(mb, geom=[v for v in mb.verts if v.co.y > 0.03], context="VERTS")
 mb.to_mesh(mouth.data)
 mb.free()
-finish(mouth, "Mouth", DARK)
+mouth.name = "Mouth"
+mouth.data.shade_smooth()
+mouth.data.materials.append(DARK)
+link(mouth)
 
 # ------------------------------------------------------------ crown
-SEGMENTS, PEAKS = 24, 6
-R_CROWN = 0.72
-BAND_Z, VALLEY_Z, PEAK_Z = 0.0, 0.3, 0.72
-crown_mesh = bpy.data.meshes.new("Crown")
+SEGMENTS, PEAKS = 48, 6
+R_CROWN = 0.82
+BAND_Z, VALLEY_Z, PEAK_Z = 0.0, 0.32, 0.8
 cb = bmesh.new()
 bottom, top = [], []
 per_peak = SEGMENTS // PEAKS
@@ -197,22 +216,22 @@ for i in range(SEGMENTS):
 for i in range(SEGMENTS):
     j = (i + 1) % SEGMENTS
     cb.faces.new((bottom[i], bottom[j], top[j], top[i]))
-cb.to_mesh(crown_mesh)
-cb.free()
-crown = bpy.data.objects.new("Crown", crown_mesh)
-scene.collection.objects.link(crown)
-crown.data.materials.append(GOLD)
+# the band is where the head is R_CROWN wide; tilt it a touch to one side
+h = HEAD_R * HEAD_SCALE.z * math.sqrt(max(0.0, 1 - (R_CROWN / (HEAD_R * HEAD_SCALE.x)) ** 2))
+crown = add_mesh("Crown", cb, GOLD, (0.04, 0, HEAD_C.z + h - 0.03))
+crown.data.shade_flat()
+crown.rotation_mode = "XYZ"
+crown.rotation_euler = (math.radians(3), math.radians(8), 0)
 sol = crown.modifiers.new("Solidify", "SOLIDIFY")
 sol.thickness = 0.07
 sol.offset = 0
-# band sits where the head is about R_CROWN wide, tilted a touch to one side
-crown.location = (0.04, 0, HEAD_C.z + math.sqrt(HEAD_R ** 2 - R_CROWN ** 2) - 0.02)
-crown.rotation_euler = (math.radians(3), math.radians(8), 0)
-link(crown)
+bev = crown.modifiers.new("Bevel", "BEVEL")
+bev.width = 0.015
+bev.segments = 2
 for i in range(PEAKS):
     a = 2 * math.pi * (i * per_peak) / SEGMENTS
-    sphere("Gem%d" % (i + 1), 0.075, (R_CROWN * math.cos(a), R_CROWN * math.sin(a), 0.2),
-           GEM_RED if i % 2 == 0 else GEM_BLUE, segments=8, rings=5, parent=crown)
+    ellipsoid("Gem%d" % (i + 1), 0.085, (R_CROWN * math.cos(a), R_CROWN * math.sin(a), 0.2),
+              GEM_RED if i % 2 == 0 else GEM_BLUE, parent=crown)
 
 bpy.ops.object.select_all(action="DESELECT")
 for o in col.objects:
