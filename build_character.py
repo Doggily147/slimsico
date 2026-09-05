@@ -1,9 +1,10 @@
-"""Adds a Human Fall Flat styled character to the open slimsico scene and
-switches the baseplate to the numbered grid texture from make_tile_texture.py.
+"""Adds a low-poly, matte yellow, Wobbly Life styled character with a crown to
+the open slimsico scene and switches the baseplate to the numbered grid
+texture from make_tile_texture.py.
 
-The body is modelled with metaballs (soft, gummy, joined limbs), converted to
-a mesh, and topped with a gold crown. Run inside Blender with slimsico.blend
-open (Text editor, or via the MCP bridge). Re-running replaces the character.
+Every body part is its own low-segment primitive, flat shaded, so the limbs
+read as separate pieces. Run inside Blender with slimsico.blend open (Text
+editor, or via the MCP bridge). Re-running replaces the character.
 """
 import bmesh
 import bpy
@@ -17,13 +18,14 @@ TILE_TEX = os.path.join(ROOT, "textures", "tiles.png")
 scene = bpy.context.scene
 
 
-def material(name, rgb, rough=0.5, metallic=0.0):
+def material(name, rgb, rough=0.9, metallic=0.0):
     m = bpy.data.materials.get(name) or bpy.data.materials.new(name)
     m.use_nodes = True
     bsdf = m.node_tree.nodes["Principled BSDF"]
     bsdf.inputs["Base Color"].default_value = (*rgb, 1)
     bsdf.inputs["Roughness"].default_value = rough
     bsdf.inputs["Metallic"].default_value = metallic
+    bsdf.inputs["Specular IOR Level"].default_value = 0.2
     m.diffuse_color = (*rgb, 1)
     m.metallic = metallic
     m.roughness = rough
@@ -69,134 +71,117 @@ for block in (bpy.data.meshes, bpy.data.metaballs):
 col = bpy.data.collections.new("Character")
 scene.collection.children.link(col)
 
+YELLOW = material("WobblyYellow", (1.0, 0.72, 0.08), rough=0.95)
+DARK = material("FaceDark", (0.06, 0.05, 0.04), rough=0.8)
+GOLD = material("CrownGold", (1.0, 0.80, 0.25), rough=0.5, metallic=0.7)
+GEM_RED = material("CrownGemRed", (0.85, 0.10, 0.12), rough=0.4)
+GEM_BLUE = material("CrownGemBlue", (0.12, 0.35, 0.90), rough=0.4)
 
-def link(obj, parent=None):
+root = bpy.data.objects.new("Character", None)
+root.empty_display_type = "PLAIN_AXES"
+root.empty_display_size = 1.0
+col.objects.link(root)
+
+
+def link(obj, parent=root):
     for c in obj.users_collection:
         c.objects.unlink(obj)
     col.objects.link(obj)
-    if parent is not None:
-        obj.parent = parent
-        obj.matrix_parent_inverse = parent.matrix_world.inverted()
+    obj.parent = parent
+    obj.matrix_parent_inverse = parent.matrix_world.inverted()
     return obj
 
 
-# Pale mint gummy body instead of Bob's white; navy shorts; gold crown.
-SKIN = material("GummyMint", (0.72, 0.90, 0.80), rough=0.35)
-sb = SKIN.node_tree.nodes["Principled BSDF"]
-sb.inputs["Subsurface Weight"].default_value = 0.5
-sb.inputs["Subsurface Radius"].default_value = (0.8, 1.0, 0.9)
-sb.inputs["Coat Weight"].default_value = 0.6
-sb.inputs["Coat Roughness"].default_value = 0.15
-SHORTS = material("ShortsNavy", (0.08, 0.12, 0.32), rough=0.55)
-GOLD = material("CrownGold", (1.0, 0.72, 0.18), rough=0.25, metallic=1.0)
-GEM = material("CrownGem", (0.85, 0.08, 0.12), rough=0.1)
-EYE = material("EyeDark", (0.05, 0.05, 0.06), rough=0.3)
-
-# ------------------------------------------------------------ metaball body
-# Metaball objects sharing a base name blend together, so the body and the
-# shorts use different names to stay separate.
+def finish(obj, name, mat, parent=root):
+    obj.name = name
+    obj.data.materials.append(mat)
+    bpy.ops.object.shade_flat()                      # visible facets = low poly look
+    return link(obj, parent)
 
 
-def metaball_object(name, resolution):
-    mb = bpy.data.metaballs.new(name)
-    mb.resolution = resolution
-    mb.render_resolution = resolution / 2
-    mb.threshold = 0.6
-    o = bpy.data.objects.new(name, mb)
-    scene.collection.objects.link(o)
-    return link(o)
-
-
-def ball(mb, loc, radius, kind="BALL", size=(1, 1, 1), rot=None):
-    e = mb.elements.new()
-    e.type = kind
-    e.co = loc
-    e.radius = radius
-    e.size_x, e.size_y, e.size_z = size
-    e.stiffness = 2.0
-    if rot is not None:
-        e.rotation = rot
-    return e
-
-
-body = metaball_object("GummyBody", 0.12)
-mb = body.data
-# head, neck, torso
-ball(mb, (0, 0, 5.05), 1.3)
-ball(mb, (0, 0, 4.15), 0.75)
-ball(mb, (0, 0, 3.35), 1.25, "ELLIPSOID", (1.05, 0.72, 1.15))
-ball(mb, (0, 0, 2.45), 1.05, "ELLIPSOID", (1.0, 0.72, 0.8))       # hips
-# arms: capsules hang from the shoulders, slightly out, mitten hands
-for s in (-1, 1):
-    shoulder = Vector((s * 1.05, 0, 3.95))
-    hand = Vector((s * 1.45, -0.15, 2.05))
-    mid = (shoulder + hand) / 2
-    d = hand - shoulder
-    # a capsule runs along its local X axis; point that down the arm
-    ball(mb, mid, 0.62, "CAPSULE", (d.length / 2 - 0.35, 1, 1), rot=d.to_track_quat("X", "Z"))
-    ball(mb, hand, 0.66)
-# legs: short capsules and chunky feet
-for s in (-1, 1):
-    hip = Vector((s * 0.5, 0, 2.1))
-    ankle = Vector((s * 0.62, 0, 0.55))
-    d = ankle - hip
-    ball(mb, (hip + ankle) / 2, 0.66, "CAPSULE", (d.length / 2 - 0.3, 1, 1))
-    mb.elements[-1].rotation = d.to_track_quat("X", "Z")
-    ball(mb, (s * 0.65, -0.3, 0.42), 0.72, "ELLIPSOID", (0.62, 0.95, 0.5))
-
-shorts = metaball_object("GummyShorts", 0.12)
-sm = shorts.data
-ball(sm, (0, 0, 2.45), 1.3, "ELLIPSOID", (1.1, 0.82, 0.75))
-for s in (-1, 1):
-    ball(sm, (s * 0.55, 0, 1.7), 0.95, "ELLIPSOID", (0.62, 0.62, 0.8))
-
-# Freeze the metaballs into meshes so the file is stable and materials stick.
-depsgraph = bpy.context.evaluated_depsgraph_get()
-converted = {}
-for o, mat in ((body, SKIN), (shorts, SHORTS)):
-    bpy.ops.object.select_all(action="DESELECT")
-    o.select_set(True)
-    bpy.context.view_layer.objects.active = o
-    bpy.ops.object.convert(target="MESH")
+def sphere(name, radius, loc, mat, segments=16, rings=10, scale=(1, 1, 1), rot=None, parent=root):
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=radius, segments=segments, ring_count=rings, location=loc)
     o = bpy.context.object
-    o.data.materials.append(mat)
-    bpy.ops.object.shade_smooth_by_angle(angle=math.radians(40))
-    converted[mat.name] = o
-body = converted["GummyMint"]
-body.name = "Character"
-shorts = converted["ShortsNavy"]
-shorts.name = "Shorts"
-link(shorts, body)
-for d in list(bpy.data.metaballs):
-    if d.users == 0:
-        bpy.data.metaballs.remove(d)
+    o.scale = scale
+    if rot is not None:
+        o.rotation_mode = "QUATERNION"
+        o.rotation_quaternion = rot
+    return finish(o, name, mat, parent)
 
-# Drop the figure so the soles touch the baseplate (z = 0).
-floor = min((body.matrix_world @ Vector(c)).z for c in body.bound_box)
-for o in (body, shorts):
-    for v in o.data.vertices:
-        v.co.z -= floor
-HEAD_TOP = max((body.matrix_world @ Vector(c)).z for c in body.bound_box)
 
-# ------------------------------------------------------------ face: two eyes
-depsgraph = bpy.context.evaluated_depsgraph_get()
-body_eval = body.evaluated_get(depsgraph)
-for x in (-0.32, 0.32):
-    ok, loc, n, _ = body_eval.closest_point_on_mesh(Vector((x, -2.0, HEAD_TOP - 0.55)))
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.11, segments=24, ring_count=12, location=loc + n * 0.01)
-    eye = bpy.context.object
-    eye.name = "Eye" + ("L" if x < 0 else "R")
-    eye.rotation_mode = "QUATERNION"
-    eye.rotation_quaternion = n.to_track_quat("Z", "Y")
-    eye.scale = (0.8, 1.3, 0.45)
-    eye.data.materials.append(EYE)
-    bpy.ops.object.shade_smooth()
-    link(eye, body)
+def limb(name, start, end, radius, mat, sides=10):
+    """A low-poly cylinder from start to end, capped by a small joint sphere."""
+    start, end = Vector(start), Vector(end)
+    d = end - start
+    bpy.ops.mesh.primitive_cylinder_add(vertices=sides, radius=radius, depth=d.length,
+                                        location=(start + end) / 2)
+    o = bpy.context.object
+    o.rotation_mode = "QUATERNION"
+    o.rotation_quaternion = d.to_track_quat("Z", "Y")
+    return finish(o, name, mat)
+
+
+# ------------------------------------------------------------ proportions
+# Taller than the reference: about 7 studs from soles to the top of the head.
+HEAD_R = 1.05
+HEAD_C = Vector((0, 0, 6.0))
+TORSO_C = Vector((0, 0, 3.75))
+SHOULDER = 4.55
+HIP = 2.65
+
+# head and torso
+sphere("Head", HEAD_R, HEAD_C, YELLOW)
+sphere("Torso", 1.0, TORSO_C, YELLOW, segments=14, rings=9, scale=(0.95, 0.78, 1.2))
+limb("Neck", (0, 0, 4.75), (0, 0, 5.15), 0.28, YELLOW, sides=8)
+
+# arms: out to the sides and raised a little, like the reference pose
+for s, side in ((-1, "L"), (1, "R")):
+    shoulder = Vector((s * 0.85, 0, SHOULDER))
+    direction = Vector((s * math.cos(math.radians(18)), 0, math.sin(math.radians(18))))
+    elbow = shoulder + direction * 0.22
+    wrist = shoulder + direction * 2.05
+    sphere("Shoulder" + side, 0.34, shoulder, YELLOW, segments=10, rings=6)
+    limb("Arm" + side, elbow, wrist, 0.24, YELLOW)
+    sphere("Hand" + side, 0.36, shoulder + direction * 2.25, YELLOW, segments=10, rings=6)
+
+# legs: straight down with a small stance, chunky feet
+for s, side in ((-1, "L"), (1, "R")):
+    hip = Vector((s * 0.42, 0, HIP))
+    ankle = Vector((s * 0.55, 0, 0.45))
+    sphere("Hip" + side, 0.36, hip, YELLOW, segments=10, rings=6)
+    limb("Leg" + side, hip - Vector((0, 0, 0.2)), ankle, 0.27, YELLOW)
+    sphere("Foot" + side, 0.5, (s * 0.55, -0.18, 0.24), YELLOW, segments=10, rings=6, scale=(0.9, 1.25, 0.48))
+
+# ------------------------------------------------------------ face
+def on_head(point):
+    """Project a point onto the head sphere; returns (surface point, outward normal)."""
+    n = (Vector(point) - HEAD_C).normalized()
+    return HEAD_C + n * HEAD_R, n
+
+
+for s, side in ((-1, "L"), (1, "R")):
+    loc, n = on_head((s * 0.4, -1.0, 6.2))
+    sphere("Eye" + side, 0.13, loc + n * 0.02, DARK, segments=10, rings=6,
+           scale=(1, 1, 0.5), rot=n.to_track_quat("Z", "Y"))
+
+# mouth: a small low-poly smile arc pressed onto the face
+loc, n = on_head((0, -1.0, 5.55))
+bpy.ops.mesh.primitive_torus_add(major_radius=0.3, minor_radius=0.05,
+                                 major_segments=16, minor_segments=6, location=loc + n * 0.02)
+mouth = bpy.context.object
+mouth.rotation_mode = "QUATERNION"
+mouth.rotation_quaternion = n.to_track_quat("Z", "Y")
+mb = bmesh.new()
+mb.from_mesh(mouth.data)
+bmesh.ops.delete(mb, geom=[v for v in mb.verts if v.co.y > 0.03], context="VERTS")
+mb.to_mesh(mouth.data)
+mb.free()
+finish(mouth, "Mouth", DARK)
 
 # ------------------------------------------------------------ crown
-SEGMENTS, PEAKS = 32, 8
-R_CROWN = 0.74
-BAND_Z, VALLEY_Z, PEAK_Z = 0.0, 0.32, 0.78
+SEGMENTS, PEAKS = 24, 6
+R_CROWN = 0.72
+BAND_Z, VALLEY_Z, PEAK_Z = 0.0, 0.3, 0.72
 crown_mesh = bpy.data.meshes.new("Crown")
 cb = bmesh.new()
 bottom, top = [], []
@@ -205,7 +190,7 @@ for i in range(SEGMENTS):
     a = 2 * math.pi * i / SEGMENTS
     x, y = R_CROWN * math.cos(a), R_CROWN * math.sin(a)
     k = i % per_peak
-    t = 1 - abs(k - per_peak / 2) / (per_peak / 2)          # 0 at peak, 1 at valley
+    t = 1 - abs(k - per_peak / 2) / (per_peak / 2)          # 0 at a peak, 1 in a valley
     z = PEAK_Z + (VALLEY_Z - PEAK_Z) * t
     bottom.append(cb.verts.new((x, y, BAND_Z)))
     top.append(cb.verts.new((x, y, z)))
@@ -216,31 +201,21 @@ cb.to_mesh(crown_mesh)
 cb.free()
 crown = bpy.data.objects.new("Crown", crown_mesh)
 scene.collection.objects.link(crown)
-link(crown, body)
 crown.data.materials.append(GOLD)
 sol = crown.modifiers.new("Solidify", "SOLIDIFY")
 sol.thickness = 0.07
 sol.offset = 0
-bev = crown.modifiers.new("Bevel", "BEVEL")
-bev.width = 0.015
-bev.segments = 2
-# sit the crown on the head, tilted a touch to one side
-crown.location = (0.05, 0, HEAD_TOP - 0.36)
-crown.rotation_euler = (math.radians(4), math.radians(9), 0)
+# band sits where the head is about R_CROWN wide, tilted a touch to one side
+crown.location = (0.04, 0, HEAD_C.z + math.sqrt(HEAD_R ** 2 - R_CROWN ** 2) - 0.02)
+crown.rotation_euler = (math.radians(3), math.radians(8), 0)
+link(crown)
 for i in range(PEAKS):
     a = 2 * math.pi * (i * per_peak) / SEGMENTS
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.075, segments=16, ring_count=8,
-                                         location=(R_CROWN * math.cos(a), R_CROWN * math.sin(a), 0.22))
-    gem = bpy.context.object
-    gem.name = "Gem%d" % (i + 1)
-    gem.data.materials.append(GEM if i % 2 == 0 else material("CrownGemBlue", (0.1, 0.3, 0.9), rough=0.1))
-    bpy.ops.object.shade_smooth()
-    link(gem, crown)
-    gem.matrix_parent_inverse.identity()
-    gem.parent = crown
+    sphere("Gem%d" % (i + 1), 0.075, (R_CROWN * math.cos(a), R_CROWN * math.sin(a), 0.2),
+           GEM_RED if i % 2 == 0 else GEM_BLUE, segments=8, rings=5, parent=crown)
 
 bpy.ops.object.select_all(action="DESELECT")
 for o in col.objects:
     o.select_set(True)
-bpy.context.view_layer.objects.active = body
-print("built", sorted(o.name for o in col.objects))
+bpy.context.view_layer.objects.active = bpy.data.objects["Head"]
+print("built", len(col.objects), "objects")

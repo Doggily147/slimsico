@@ -10,7 +10,7 @@ procedural sky (height gradient, noise clouds, sun disc) and a 512x512 stud
 
 - `build_scene.py` - builds the whole scene from an empty file, saves `slimsico.blend`, and renders `renders/scene.png`.
 - `make_tile_texture.py` - draws `textures/tiles.png`, the 64x64 numbered grid of 8-stud tiles (column number on top, row number below, row 1 at the bottom-left). Needs Pillow.
-- `build_character.py` - run inside Blender with the scene open: adds the Human Fall Flat styled crowned character and switches the baseplate to the numbered grid texture.
+- `build_character.py` - run inside Blender with the scene open: adds the low-poly matte yellow crowned character and switches the baseplate to the numbered grid texture.
 - `slimsico.blend` - the saved scene.
 - `renders/scene.png` - 1920x1080 EEVEE render.
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
