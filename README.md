@@ -2,7 +2,7 @@
 
 A Roblox-style starter scene modelled in Blender: a six-faced **skybox** with a
 procedural sky (height gradient, noise clouds, sun disc) and a 512x512 stud
-**baseplate** with the classic 4-stud tile grid.
+**baseplate** finished as glossy white 4-stud ceramic tiles with light grout.
 
 ![render](renders/scene.png)
 

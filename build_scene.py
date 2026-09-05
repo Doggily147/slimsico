@@ -38,16 +38,16 @@ m, nt = new_mat("BaseplateMat")
 tc = nt.nodes.new("ShaderNodeTexCoord")
 checker = nt.nodes.new("ShaderNodeTexChecker")
 checker.inputs["Scale"].default_value = 0.25            # 4-stud tiles
-checker.inputs["Color1"].default_value = (0.50, 0.51, 0.53, 1)
-checker.inputs["Color2"].default_value = (0.42, 0.43, 0.45, 1)
+checker.inputs["Color1"].default_value = (0.94, 0.94, 0.95, 1)   # white tile
+checker.inputs["Color2"].default_value = (0.86, 0.87, 0.88, 1)   # slightly off-white
 brick = nt.nodes.new("ShaderNodeTexBrick")
 brick.offset = 0.0                                       # straight grid, not staggered
 brick.inputs["Scale"].default_value = 0.25
-brick.inputs["Mortar Size"].default_value = 0.02
+brick.inputs["Mortar Size"].default_value = 0.03
 brick.inputs["Mortar Smooth"].default_value = 0.0
-brick.inputs["Mortar"].default_value = (0.22, 0.23, 0.24, 1)
+brick.inputs["Mortar"].default_value = (0.62, 0.63, 0.65, 1)      # light grey grout
 bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
-bsdf.inputs["Roughness"].default_value = 0.75
+bsdf.inputs["Roughness"].default_value = 0.55                      # glossy ceramic look
 out = nt.nodes.new("ShaderNodeOutputMaterial")
 nt.links.new(tc.outputs["Object"], checker.inputs["Vector"])
 nt.links.new(tc.outputs["Object"], brick.inputs["Vector"])
@@ -150,7 +150,7 @@ sky.data.materials.append(m)
 bpy.ops.object.light_add(type="SUN", location=(0, 0, 50))
 sun = bpy.context.object
 sun.name = "Sun"
-sun.data.energy = 6.0
+sun.data.energy = 9.0
 sun.data.color = (1.0, 0.97, 0.9)
 sun.data.angle = math.radians(1.5)
 # a sun lamp shines along its local -Z; aim -Z at -SUN_DIR so light comes FROM the sun disc
@@ -161,7 +161,7 @@ scene.world = world
 world.use_nodes = True
 bg = world.node_tree.nodes["Background"]
 bg.inputs["Color"].default_value = (0.75, 0.82, 0.92, 1)
-bg.inputs["Strength"].default_value = 0.8
+bg.inputs["Strength"].default_value = 1.0
 
 # ------------------------------------------------------------------ camera
 bpy.ops.object.camera_add(location=(-60, -120, 18))
