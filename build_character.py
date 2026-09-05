@@ -200,24 +200,43 @@ def sphere(name, radius, loc, mat, scale=(1, 1, 1), rot=None, parent=body):
     return link(o, parent)
 
 
-for s, side in ((-1, "L"), (1, "R")):
-    loc, n = on_body((s * 0.42, -2.0, HEAD_C.z + 0.25))
-    sphere("Eye" + side, 0.14, loc + n * 0.01, DARK, scale=(1, 1, 0.45), rot=n.to_track_quat("Z", "Y"))
+EYE = material("EyeDark", (0.05, 0.035, 0.03), rough=0.22)     # a little wet, catches light
+CATCHLIGHT = material("EyeCatchlight", (1.0, 1.0, 1.0), rough=0.3)
+MOUTH = material("MouthDark", (0.16, 0.07, 0.05), rough=0.55)
 
-loc, n = on_body((0, -2.0, HEAD_C.z - 0.45))
-bpy.ops.mesh.primitive_torus_add(major_radius=0.33, minor_radius=0.055,
-                                 major_segments=40, minor_segments=12, location=loc + n * 0.02)
-mouth = bpy.context.object
-mouth.rotation_mode = "QUATERNION"
-mouth.rotation_quaternion = n.to_track_quat("Z", "Y")
-mb = bmesh.new()
-mb.from_mesh(mouth.data)
-bmesh.ops.delete(mb, geom=[v for v in mb.verts if v.co.y > 0.03], context="VERTS")
-mb.to_mesh(mouth.data)
-mb.free()
-mouth.name = "Mouth"
-mouth.data.shade_smooth()
-mouth.data.materials.append(DARK)
+# eyes: soft ovals sunk slightly into the head, tilted a touch outward, with a catchlight
+for s, side in ((-1, "L"), (1, "R")):
+    loc, n = on_body((s * 0.45, -2.0, HEAD_C.z + 0.22))
+    rot = n.to_track_quat("Z", "Y")
+    eye = sphere("Eye" + side, 0.17, loc - n * 0.03, EYE, scale=(0.82, 1.0, 0.5), rot=rot)
+    eye.rotation_mode = "XYZ"
+    eye.rotation_euler.rotate_axis("Y", math.radians(-8 * s))
+    up = Vector((0, 0, 1))
+    right = n.cross(up).normalized()
+    sphere("Catchlight" + side, 0.035, loc + n * 0.06 + right * (-0.045) + up * 0.055, CATCHLIGHT, parent=eye)
+
+# mouth: a gentle smile drawn as a tapered stroke lying on the face
+curve = bpy.data.curves.new("Mouth", "CURVE")
+curve.dimensions = "3D"
+curve.bevel_depth = 0.042
+curve.bevel_resolution = 6
+curve.fill_mode = "FULL"
+curve.use_fill_caps = True
+spline = curve.splines.new("BEZIER")
+ARC_R, ARC_SPAN, POINTS = 1.0, math.radians(100), 9
+spline.bezier_points.add(POINTS - 1)
+for i, bpt in enumerate(spline.bezier_points):
+    t = i / (POINTS - 1)
+    a = -ARC_SPAN / 2 + t * ARC_SPAN
+    # wide arc centred well above the mouth so the corners curl up
+    probe = (ARC_R * math.sin(a), -2.0, HEAD_C.z + 0.35 - ARC_R * math.cos(a))
+    loc, n = on_body(probe)
+    bpt.co = loc + n * 0.012
+    bpt.handle_left_type = bpt.handle_right_type = "AUTO"
+    bpt.radius = 0.5 + 0.5 * math.sin(math.pi * t)          # slightly thinner at the corners
+mouth = bpy.data.objects.new("Mouth", curve)
+scene.collection.objects.link(mouth)
+mouth.data.materials.append(MOUTH)
 link(mouth, body)
 
 # ------------------------------------------------------------ crown
