@@ -122,7 +122,8 @@ key(rig, F_RISE, loc=(0, -0.6, LIE_Z), rot=(R90, 0, 0), scale=(1, 1, 1))
 # lies along -Y from the root. Pushing up raises the hips (root z); tucking the
 # feet under then rotating upright brings him to his feet about two studs
 # forward of where his hips were.
-key(rig, F_PUSH, loc=(0, -0.6, 2.05), rot=(R90, 0, 0))                       # hands and knees
+key(rig, F_RISE + 6, loc=(0, -0.6, 2.0), rot=(R90, 0, 0))                    # chest lifting on the hands
+key(rig, F_PUSH, loc=(0, -0.6, 2.1), rot=(R90, 0, 0))                        # hands and knees
 key(rig, F_CROUCH, loc=(0, -1.6, -0.55), rot=(math.radians(38), 0, 0))        # crouched on his feet
 key(rig, F_UP - 4, loc=(0, -2.0, 0.0), rot=(math.radians(-6), 0, 0))          # overshoots upright
 key(rig, F_UP, loc=(0, -2.0, 0.0), rot=(0, 0, 0))
@@ -185,7 +186,10 @@ POSES = {
     F_RISE:   sym(arm=FLAT_ARM, fore=FLAT_FORE),
     # hands come in under the shoulders and straighten, back arches up, knees
     # fold under so the shins lie along the ground
-    F_RISE + 6: sym(arm=(-0.5, -0.8, 0.3), fore=(-0.2, -0.95, 0.2),
+    # elbows lift first, then the forearms come down under the chest, so the
+    # hands slide in along the floor instead of through it
+    F_RISE + 3: sym(arm=(-0.8, 0.2, 0.2), fore=(-0.6, -0.55, 0.3)),
+    F_RISE + 6: sym(arm=(-0.85, -0.42, 0.25), fore=(-0.3, -0.75, 0.4),
                     **{"spine.002": (0, 0.2, 0.98), "spine.003": (0, 0.35, 0.94)}),
     F_PUSH:   sym(arm=(-0.25, -0.95, 0.15), fore=(-0.1, -0.98, 0.15),
                   thigh=(-0.05, -0.85, -0.5), shin=(0, 0.1, -1.0),

@@ -8,6 +8,9 @@ All notable changes to slimsico. Newest first. Dates are commit dates.
 - `build_opening.py`: an 8-second opening (192 frames at 24 fps). Yellow drops out of the sky with a gravity-accurate fall and a tumble, belly-flops with a squash and a small bounce, lies still, then gets up properly: hands come in under the shoulders and push the chest up, the back arches, the knees fold under onto hands and knees, the feet tuck in to a crouch, and he stands with a relieved hop and turns to face the camera.
 - Full-body poses keyed through the rig with a parent-aware bone aiming helper: spine, neck, head, upper arms, forearms, thighs and shins. Arms flail in the air, spread flat along the ground for the splat, and lower as he stands.
 - Crown, eyes and mouth are bone-parented to the head so they follow it when it is posed.
+
+### Fixed
+- Hands no longer pass through the floor during the push-up: the elbows lift first, the hips rise earlier, and the hands-and-knees height was trimmed so the hands rest on the grid rather than floating.
 - The camera falls beside him, settles at ground level for the landing, then dollies round to a three-quarter view, tracking his head throughout.
 - `renders/opening.mp4`: the shot rendered in EEVEE at 1080p.
 
