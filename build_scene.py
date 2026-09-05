@@ -150,8 +150,8 @@ sky.data.materials.append(m)
 bpy.ops.object.light_add(type="SUN", location=(0, 0, 50))
 sun = bpy.context.object
 sun.name = "Sun"
-sun.data.energy = 5.0
-sun.data.color = (1.0, 0.97, 0.9)
+sun.data.energy = 3.0
+sun.data.color = (1.0, 0.96, 0.88)
 sun.data.angle = math.radians(1.5)
 # a sun lamp shines along its local -Z; aim -Z at -SUN_DIR so light comes FROM the sun disc
 sun.rotation_euler = (math.acos(SUN_DIR[2]), 0, math.atan2(SUN_DIR[1], SUN_DIR[0]) + math.pi / 2)
@@ -170,11 +170,20 @@ sky_tex.sun_elevation = math.asin(SUN_DIR[2])
 sky_tex.sun_rotation = math.atan2(SUN_DIR[0], SUN_DIR[1])
 sky_tex.sun_size = math.radians(1.0)
 sky_tex.sun_intensity = 0.3
+# blend the sky toward a neutral warm grey so the ambient light doesn't turn
+# the character's yellow green
+neutral = wnt.nodes.new("ShaderNodeMix")
+neutral.name = "NeutralMix"
+neutral.data_type = "RGBA"
+neutral.inputs["Factor"].default_value = 0.7
+neutral.inputs["B"].default_value = (0.86, 0.86, 0.84, 1)
 bg = wnt.nodes.new("ShaderNodeBackground")
-bg.inputs["Strength"].default_value = 0.35
+bg.inputs["Strength"].default_value = 0.4
 wout = wnt.nodes.new("ShaderNodeOutputWorld")
-wnt.links.new(sky_tex.outputs["Color"], bg.inputs["Color"])
+wnt.links.new(sky_tex.outputs["Color"], neutral.inputs["A"])
+wnt.links.new(neutral.outputs["Result"], bg.inputs["Color"])
 wnt.links.new(bg.outputs["Background"], wout.inputs["Surface"])
+scene.view_settings.exposure = -0.35
 
 # ------------------------------------------------------------------ camera
 bpy.ops.object.camera_add(location=(-60, -120, 18))

@@ -32,9 +32,11 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `build_scene.py` - builds the whole scene from an empty file, saves `slimsico.blend`, and renders `renders/scene.png`.
 - `make_tile_texture.py` - draws `textures/tiles.png`, the 64x64 numbered grid of 8-stud tiles (column number on top, row number below, row 1 at the bottom-left). Needs Pillow.
 - `build_character.py` - run inside Blender with the scene open: builds the crowned character as one connected Skin-modifier mesh with subdivision and an auto-generated armature (`CharacterRig`), and switches the baseplate to the numbered grid texture.
-- `slimsico.blend` - the saved scene.
+- `build_opening.py` - run inside Blender after the character exists: names the rig's bones and keys the opening shot (fall from the sky, belly-flop, get up, turn to camera) with a tracking camera, 192 frames at 24 fps.
+- `slimsico.blend` - the saved scene, including the opening animation.
 - `renders/scene.png` - 1920x1080 EEVEE render of the empty set.
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
+- `renders/opening.mp4` - the rendered opening shot (1080p, H.264).
 - `CHANGELOG.md` - full history of changes.
 
 ## Rebuild
@@ -52,6 +54,13 @@ python make_tile_texture.py
 ```
 
 Character: open `slimsico.blend` in Blender and run `build_character.py` from
-the Text editor. Re-running it replaces the character.
+the Text editor. Re-running it replaces the character. Then run
+`build_opening.py` the same way to key the opening shot.
+
+Opening shot video (the .blend carries the output settings):
+
+```
+blender -b slimsico.blend -a
+```
 
 Made with Blender 5.0.

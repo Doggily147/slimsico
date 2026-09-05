@@ -2,6 +2,20 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-05 - Opening shot
+
+### Added
+- `build_opening.py`: an 8-second opening (192 frames at 24 fps). Yellow drops out of the sky with a gravity-accurate fall and a tumble, belly-flops with a squash and a small bounce, lies still, then gets up properly: hands come in under the shoulders and push the chest up, the back arches, the knees fold under onto hands and knees, the feet tuck in to a crouch, and he stands with a relieved hop and turns to face the camera.
+- Full-body poses keyed through the rig with a parent-aware bone aiming helper: spine, neck, head, upper arms, forearms, thighs and shins. Arms flail in the air, spread flat along the ground for the splat, and lower as he stands.
+- Crown, eyes and mouth are bone-parented to the head so they follow it when it is posed.
+- The camera falls beside him, settles at ground level for the landing, then dollies round to a three-quarter view, tracking his head throughout.
+- `renders/opening.mp4`: the shot rendered in EEVEE at 1080p.
+
+### Changed
+- Rig bones renamed from `Bone.NN` to proper names (`spine.001`, `head`, `upper_arm.L`, `foot.R`, ...).
+- Scene frame range is now 1-192 with H.264 video output settings saved in the file.
+- Render lighting balanced for the yellow: sun lowered to 3 and warmed, world sky blended 70% toward a neutral warm grey (it was tinting the character green), exposure -0.35 so the white grid no longer blows out.
+
 ## 2026-09-05 - Skybox visible in the viewport, physical world sky
 
 ### Fixed
