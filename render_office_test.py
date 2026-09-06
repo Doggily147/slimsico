@@ -124,7 +124,7 @@ if os.path.exists(MUSIC):
 audio_filters.append("%samix=inputs=%d:normalize=0,apad[aout]" % (mix_in, n_mix))
 
 cmd += ["-filter_complex", video + ";" + ";".join(audio_filters), "-map", "[vout]", "-map", "[aout]",
-        "-c:v", "libx264", "-crf", "18", "-pix_fmt", "yuv420p", "-r", str(FPS),
+        "-c:v", "libx264", "-crf", "23", "-preset", "slow", "-pix_fmt", "yuv420p", "-r", str(FPS),
         "-c:a", "aac", "-b:a", "160k", "-t", "%.3f" % total, out]
 subprocess.run(cmd, check=True)
 os.remove(raw)
