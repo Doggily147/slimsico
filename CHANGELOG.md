@@ -2,29 +2,27 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
-## 2026-09-06 - Scene 2: orbit
+## 2026-09-06 - Opening ends on his feet
 
-### Added
-- `build_orbit.py`: three seconds (frames 193-264) of the camera orbiting Yellow in wide shots from above, one second each, each arc further out and higher than the last (24, 34 and 46 studs out; 14, 22 and 32 up), spiralling round him so he reads as a small figure on the endless grid. He sways, breathes, glances left and right, and looks up at the camera.
-- `assemble_intro.py`: renders each orbit angle as its own clip and stitches them to the opening with a 0.6 s dissolve in and 0.35 s dissolves between angles, producing `renders/intro.mp4`.
-- `renders/orbit_a.mp4`, `orbit_b.mp4`, `orbit_c.mp4` and `renders/intro.mp4`.
+### Removed
+- The turn-to-camera beat after he stands, and the whole orbit scene (`build_orbit.py`, `assemble_intro.py`, the orbit clips and `intro.mp4`). The opening now runs 160 frames and ends once he has settled on his feet, with the camera easing back slightly.
 
 ## 2026-09-05 - Opening shot
 
 ### Added
-- `build_opening.py`: an 8-second opening (192 frames at 24 fps). Yellow drops out of the sky with a gravity-accurate fall and a tumble, belly-flops with a squash and a small bounce, lies still, then gets up properly: hands come in under the shoulders and push the chest up, the back arches, the knees fold under onto hands and knees, the feet tuck in to a crouch, and he stands with a relieved hop and turns to face the camera.
+- `build_opening.py`: a 6.7-second opening (160 frames at 24 fps). Yellow drops out of the sky with a gravity-accurate fall and a tumble, belly-flops with a squash and a small bounce, lies still, then gets up properly: hands come in under the shoulders and push the chest up, the back arches, the knees fold under onto hands and knees, the feet tuck in to a crouch, and he stands with a relieved hop.
 - Full-body poses keyed through the rig with a parent-aware bone aiming helper: spine, neck, head, upper arms, forearms, thighs and shins. Arms flail in the air, spread flat along the ground for the splat, and lower as he stands.
 - Crown, eyes and mouth are bone-parented to the head so they follow it when it is posed.
 
 ### Fixed
 - Hands no longer pass through the floor during the push-up: the elbows lift first, the hips rise earlier, and the hands-and-knees height was trimmed so the hands rest on the grid rather than floating.
 - Feet no longer sink into the floor in the crouch (frames 106-118): the crouch root height was raised. The lowest point of the body is now checked on every frame of the shot and never goes below the grid.
-- The camera falls beside him, settles at ground level for the landing, then dollies round to a three-quarter view, tracking his head throughout.
+- The camera falls beside him, settles at ground level for the landing, then eases back a little as he gets up, tracking his head throughout.
 - `renders/opening.mp4`: the shot rendered in EEVEE at 1080p.
 
 ### Changed
 - Rig bones renamed from `Bone.NN` to proper names (`spine.001`, `head`, `upper_arm.L`, `foot.R`, ...).
-- Scene frame range is now 1-192 with H.264 video output settings saved in the file.
+- Scene frame range is now 1-160 with H.264 video output settings saved in the file.
 - Render lighting balanced for the yellow: sun lowered to 3 and warmed, world sky blended 70% toward a neutral warm grey (it was tinting the character green), exposure -0.35 so the white grid no longer blows out.
 
 ## 2026-09-05 - Skybox visible in the viewport, physical world sky

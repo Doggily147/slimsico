@@ -1,8 +1,8 @@
 """Opening shot: Yellow drops out of the sky, belly-flops onto the grid, lies
 there a moment, pushes himself up onto hands and knees, tucks his feet under
-into a crouch, stands with a relieved hop and turns to the camera. The camera
-falls alongside him, settles at ground level for the landing, then dollies
-round to a three-quarter view as he gets up.
+into a crouch, and stands with a relieved hop. The camera falls alongside
+him, settles at ground level for the landing, then eases back a little as he
+gets up.
 
 Run inside Blender with slimsico.blend open after build_character.py, then
 render with:
@@ -21,7 +21,7 @@ cam = bpy.data.objects["Camera"]
 
 FPS = 24
 F_START, F_LAND, F_SETTLE, F_RISE = 1, 46, 60, 84
-F_PUSH, F_CROUCH, F_UP, F_FACE, F_END = 100, 114, 128, 158, 192
+F_PUSH, F_CROUCH, F_UP, F_END = 100, 114, 128, 160
 DROP_Z = 72.0            # where he appears in the sky
 LIE_Z = 0.95             # root height when flat on his belly (half the belly depth)
 R90 = math.radians(90)
@@ -127,13 +127,12 @@ key(rig, F_PUSH, loc=(0, -0.6, 2.1), rot=(R90, 0, 0))                        # h
 key(rig, F_CROUCH, loc=(0, -1.6, 0.15), rot=(math.radians(38), 0, 0))         # crouched on his feet
 key(rig, F_UP - 4, loc=(0, -2.0, 0.0), rot=(math.radians(-6), 0, 0))          # overshoots upright
 key(rig, F_UP, loc=(0, -2.0, 0.0), rot=(0, 0, 0))
-# a relieved little hop, then turn to face the camera
+# a relieved little hop, then he settles on his feet
 key(rig, F_UP + 6, scale=(1.05, 1.05, 0.92))
 key(rig, F_UP + 12, loc=(0, -2.0, 0.8), scale=(0.96, 0.96, 1.06))
 key(rig, F_UP + 18, loc=(0, -2.0, 0.0), scale=(1.04, 1.04, 0.95))
 key(rig, F_UP + 24, rot=(0, 0, 0), scale=(1, 1, 1))
-key(rig, F_FACE, loc=(0, -2.0, 0.0), rot=(0, 0, math.radians(-22)))
-key(rig, F_END, loc=(0, -2.0, 0.0), rot=(0, 0, math.radians(-22)), scale=(1, 1, 1))
+key(rig, F_END, loc=(0, -2.0, 0.0), rot=(0, 0, 0), scale=(1, 1, 1))
 
 # ------------------------------------------------------------ bone poses
 # Directions are in the rig's own space (the character's rest frame):
@@ -201,8 +200,8 @@ POSES = {
                   **{"head": (0, -0.3, 0.95)}),
     F_UP:     sym(arm=(-0.5, -0.2, -0.85), fore=(-0.45, -0.25, -0.85)),
     F_UP + 12: sym(arm=(-0.6, -0.1, -0.6), fore=(-0.6, -0.15, -0.65)),      # lift on the hop
-    F_FACE:   {"head": (0, -0.14, 0.99)},                                    # everything at rest, chin up
-    F_END:    {"head": (0, -0.14, 0.99)},
+    F_UP + 24: {},                                                            # everything back to rest
+    F_END:    {},
 }
 for frame in sorted(POSES):
     pose_frame(frame, POSES[frame])
@@ -215,12 +214,11 @@ track.target = rig
 track.subtarget = "head"
 track.track_axis = "TRACK_NEGATIVE_Z"
 track.up_axis = "UP_Y"
-# falls beside him, lands as he lands, then dollies round while he gets up
+# falls beside him, lands as he lands, then eases back a little as he gets up
 key(cam, F_START, loc=(-11, -15, DROP_Z + 4))
 key(cam, F_LAND, loc=(-11, -15, 3.2))
 key(cam, F_RISE, loc=(-11, -15, 3.2))
-key(cam, F_FACE, loc=(-8.5, -23, 6.0))
-key(cam, F_END, loc=(-8.0, -24, 6.0))
+key(cam, F_END, loc=(-11.5, -18, 4.5))
 scene.camera = cam
 
 # ------------------------------------------------------------ output
