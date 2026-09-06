@@ -27,10 +27,11 @@ FACING = math.radians(248)                     # azimuth his face points toward
 
 # Three orbit arcs: (start frame, radius, height, start azimuth, end azimuth).
 # Azimuths are degrees around him; a decreasing pair sweeps the other way.
+# Wide shots, each further out and higher than the last, spiralling round him.
 ARCS = [
-    (F_A, 9.0, 1.6, 215, 275),      # low, sweeping across his front
-    (F_B, 12.0, 6.5, 330, 268),     # eye level, from his right side round to the front
-    (F_C, 10.0, 13.0, 170, 240),    # high, looking down from front-left
+    (F_A, 24.0, 14.0, 200, 290),    # wide and above, sweeping across his front
+    (F_B, 34.0, 22.0, 290, 380),    # further and higher, round his right side
+    (F_C, 46.0, 32.0, 20, 110),     # far and high, looking down over him from behind-left
 ]
 
 PREFS = bpy.context.preferences.edit
