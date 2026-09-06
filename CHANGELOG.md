@@ -2,6 +2,11 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-06 - Draft 1 archived
+
+### Changed
+- The crates episode is archived as draft 1: tagged `draft-1`, its scripts and video moved to `drafts/draft-1/`, and logged in `DRAFTS.md` with what was learned. The working scene is cleared back to Yellow standing on the grid with no animation, ready for draft 2.
+
 ## 2026-09-06 - Office test scene
 
 ### Added

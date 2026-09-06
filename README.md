@@ -33,18 +33,14 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `make_tile_texture.py` - draws `textures/tiles.png`, the 64x64 numbered grid of 8-stud tiles (column number on top, row number below, row 1 at the bottom-left). Needs Pillow.
 - `build_character.py` - run inside Blender with the scene open: builds the crowned character as one connected Skin-modifier mesh with subdivision and an auto-generated armature (`CharacterRig`), and switches the baseplate to the numbered grid texture.
 - `rig_utils.py` - shared helpers for the animation scripts: keying with explicit interpolation, a parent-aware bone aimer, and a ground clamp that keeps the body's lowest point on the floor.
-- `build_opening.py` - run inside Blender after the character exists: names the rig's bones and keys the opening shot (fall from the sky, belly-flop, get up) with a tracking camera, frames 1-150.
-- `build_props.py` - two detailed wooden crates (slats, posts, braces, iron brackets, bolts), one open-topped with a bundle of logs.
-- `build_continue.py` - frames 151-561: he looks at his hands, says "Where am I?" (subtitle), walks, hears a whistle, looks up at the falling crates (with a low shot tilted up at them), bolts while they land, slows, turns back and sees them; six camera set-ups plus a crane.
-- `render_episode.py` - renders the episode headless, burns the subtitle in and adds the synthesised sound cues (splat, whistles, thuds) with ffmpeg.
 - `build_office.py` - builds the "OfficeTest" scene: an office set, the worker and police officer cloned from Yellow, and the three-attempt robbery with rewinds.
 - `render_office_test.py` - renders OfficeTest and assembles it with the rewinds, subtitles, sound, and an optional music bed from `audio/ambient.*`.
-- `slimsico.blend` - the saved scene, including the props and all 561 frames of animation.
+- `slimsico.blend` - the saved scene: the set, Yellow on the grid (cleared between drafts), and the OfficeTest scene.
 - `renders/scene.png` - 1920x1080 EEVEE render of the empty set.
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
-- `renders/episode.mp4` - the rendered episode so far, 23.4 s at 1080p with subtitles and sound.
 - `renders/office_test.mp4` - the office robbery test scene with rewinds.
 - `CHANGELOG.md` - full history of changes.
+- `DRAFTS.md` - the draft log; each finished draft is archived under `drafts/` and tagged.
 
 ## Rebuild
 
@@ -60,15 +56,8 @@ Grid texture:
 python make_tile_texture.py
 ```
 
-Character and animation: open `slimsico.blend` in Blender and run, from the
-Text editor, `build_character.py`, then `build_opening.py`, `build_props.py`
-and `build_continue.py`. Each can be re-run; it replaces its own part.
-
-Episode video with subtitles and sound (needs ffmpeg on PATH):
-
-```
-python render_episode.py
-```
+Character: open `slimsico.blend` in Blender and run `build_character.py` from
+the Text editor. Draft animations live under `drafts/`; see `DRAFTS.md`.
 
 Office test scene (run `build_office.py` in Blender first):
 
