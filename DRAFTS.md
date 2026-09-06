@@ -46,3 +46,4 @@ Beats so far:
 
 1. The baseplate, peaceful. A sound from above. The camera tilts up and finds Yellow far up in the sky, rolling as he falls.
 2. The fall accelerates, the camera follows him down to the plate, and he belly-flops with a squash, a bounce and a slide, then lies still.
+3. He gets up with his arms, rubs his forearm looking down at it, then the head lifts and he turns slowly as the camera pulls back to reveal the deserted plate.

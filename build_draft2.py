@@ -3,7 +3,10 @@ The camera tilts up, rises, tightens its lens, and finds Yellow far up in the
 sky, rolling through the air as he falls. Beat 2: the fall accelerates, the
 camera follows him down, and he belly-flops onto the plate.
 
-Frames 1-240 at 24 fps. Later beats extend this timeline.
+Beat 3: he gets up with his arms, rubs his forearm looking down at it,
+then realises he is somewhere else and turns to take in the empty plate.
+
+Frames 1-440 at 24 fps. Later beats extend this timeline.
 
 Run inside Blender with slimsico.blend open after build_character.py.
 Re-running replaces the animation. Render with render_draft2.py.
@@ -15,7 +18,7 @@ import sys
 from mathutils import Euler, Quaternion, Vector
 
 sys.path.insert(0, os.path.dirname(bpy.data.filepath))
-from rig_utils import Poser, floor_violations, key, set_interpolation  # noqa: E402
+from rig_utils import Poser, floor_violations, ground_clamp, key, motion_spikes, set_interpolation  # noqa: E402
 
 scene = bpy.data.scenes["Scene"]
 bpy.context.window.scene = scene
@@ -24,7 +27,7 @@ body = bpy.data.objects["Character"]
 cam = bpy.data.objects["Camera"]
 
 FPS = 24
-F_START, F_SOUND, F_TILT, F_FOUND, F_LAND, F_END = 1, 60, 72, 108, 190, 240
+F_START, F_SOUND, F_TILT, F_FOUND, F_LAND = 1, 60, 72, 108, 190
 SOUND_CUES = [("wind", 1), ("whistle", F_SOUND), ("splat", F_LAND)]      # read by render_draft2.py
 LIE_Z = 1.12                        # root height lying on his belly (half the belly depth)
 
@@ -143,30 +146,113 @@ key(rig, F_LAND + 2, loc=(RX, RY, LIE_Z - 0.15), scale=(1.2, 0.7, 1.12))        
 key(rig, F_LAND + 7, loc=(RX, RY - 0.5, LIE_Z + 1.0), scale=(0.94, 1.12, 0.96))    # small bounce
 key(rig, F_LAND + 12, loc=(RX, RY - 1.0, LIE_Z), scale=(1.08, 0.86, 1.03))
 key(rig, F_LAND + 20, loc=(RX, RY - 1.4, LIE_Z), scale=(1, 1, 1))
-key(rig, F_END, loc=(RX, RY - 1.4, LIE_Z), scale=(1, 1, 1))
+key(rig, 240, loc=(RX, RY - 1.4, LIE_Z), scale=(1, 1, 1))
 key_quat(rig, F_LAND + 20, LANDING_ROT, "BEZIER")
-key_quat(rig, F_END, LANDING_ROT, "BEZIER")
+key_quat(rig, 240, LANDING_ROT, "BEZIER")
 poser.pose(F_LAND + 20, {"upper_arm.L": (-0.9, -0.2, -0.3), "forearm.L": (-0.95, -0.1, -0.25),
                          "upper_arm.R": (0.9, -0.2, -0.3), "forearm.R": (0.95, -0.1, -0.25),
                          "head": (0, -0.15, 0.99)})
-poser.pose(F_END, {"upper_arm.L": (-0.9, -0.2, -0.3), "forearm.L": (-0.95, -0.1, -0.25),
+poser.pose(240, {"upper_arm.L": (-0.9, -0.2, -0.3), "forearm.L": (-0.95, -0.1, -0.25),
                    "upper_arm.R": (0.9, -0.2, -0.3), "forearm.R": (0.95, -0.1, -0.25),
                    "head": (0, -0.15, 0.99)})
+
+# ------------------------------------------------------------ beat 3: up, the arm rub, the realisation
+# He pushes up with his arms (hands under the shoulders, back arching, onto
+# hands and knees, feet tuck under, stands), rubs his left forearm with his
+# right hand while looking down at it, then the head lifts once and holds,
+# and he turns slowly to take in the empty plate. The ground clamp keeps
+# whatever is lowest in contact through the whole get-up.
+F_LIE, F_PUSH1, F_PUSH2, F_KNEES, F_CROUCH, F_STAND = 241, 256, 264, 276, 290, 304
+F_RUB, F_REAL, F_LIFT, F_TURN, F_END = 316, 372, 384, 400, 440
+LIE_Y = RY - 1.4
+R90 = math.radians(90)
+
+
+def key_rot(frame, x, y=0.0, z=0.0):
+    key_quat(rig, frame, Euler((x, y, z)).to_quaternion(), "BEZIER")
+
+
+HEAD_FRONT = {"head": (0, -0.25, 0.97)}
+poser.pose(F_LIE + 8, dict(FLAT))
+key(rig, F_LIE + 8, loc=(RX, LIE_Y, LIE_Z))
+key_rot(F_LIE + 8, R90)
+# elbows lift first, then the hands come in under the chest and push
+poser.pose(F_PUSH1, {"upper_arm.L": (-0.8, 0.2, 0.2), "forearm.L": (-0.6, -0.55, 0.3),
+                     "upper_arm.R": (0.8, 0.2, 0.2), "forearm.R": (0.6, -0.55, 0.3), **HEAD_FRONT})
+poser.pose(F_PUSH2, {"upper_arm.L": (-0.85, -0.42, 0.25), "forearm.L": (-0.3, -0.75, 0.4),
+                     "upper_arm.R": (0.85, -0.42, 0.25), "forearm.R": (0.3, -0.75, 0.4),
+                     "spine.002": (0, 0.2, 0.98), "spine.003": (0, 0.35, 0.94), **HEAD_FRONT})
+key(rig, F_PUSH2, loc=(RX, LIE_Y, LIE_Z + 0.9))
+key_rot(F_PUSH2, R90)
+# hands and knees: back arched, knees folded under, shins along the ground
+poser.pose(F_KNEES, {"upper_arm.L": (-0.25, -0.95, 0.15), "forearm.L": (-0.1, -0.98, 0.15),
+                     "upper_arm.R": (0.25, -0.95, 0.15), "forearm.R": (0.1, -0.98, 0.15),
+                     "thigh.L": (-0.05, -0.85, -0.5), "shin.L": (0, 0.1, -1.0),
+                     "thigh.R": (0.05, -0.85, -0.5), "shin.R": (0, 0.1, -1.0),
+                     "spine.001": (0, 0.3, 0.95), "spine.002": (0, 0.55, 0.83), "spine.003": (0, 0.7, 0.7),
+                     "neck": (0, 0.8, 0.6), "head": (0, 0.75, 0.65)})
+key(rig, F_KNEES, loc=(RX, LIE_Y, LIE_Z + 1.0))
+key_rot(F_KNEES, R90)
+# feet plant, hands leave the ground, spine straightens into a crouch
+poser.pose(F_CROUCH, {"upper_arm.L": (-0.55, -0.7, -0.45), "forearm.L": (-0.4, -0.7, -0.6),
+                      "upper_arm.R": (0.55, -0.7, -0.45), "forearm.R": (0.4, -0.7, -0.6),
+                      "thigh.L": (-0.08, -0.75, -0.65), "shin.L": (0, 0.55, -0.83),
+                      "thigh.R": (0.08, -0.75, -0.65), "shin.R": (0, 0.55, -0.83), **HEAD_FRONT})
+key(rig, F_CROUCH, loc=(RX, LIE_Y - 1.0, 0.2))
+key_rot(F_CROUCH, math.radians(38))
+# stands, with a small overshoot
+poser.pose(F_STAND, {"upper_arm.L": (-0.5, -0.2, -0.85), "forearm.L": (-0.45, -0.25, -0.85),
+                     "upper_arm.R": (0.5, -0.2, -0.85), "forearm.R": (0.45, -0.25, -0.85), **HEAD_FRONT})
+key(rig, F_STAND - 6, loc=(RX, LIE_Y - 1.4, 0.0))
+key_rot(F_STAND - 6, math.radians(-4))
+key(rig, F_STAND, loc=(RX, LIE_Y - 1.4, 0.0))
+key_rot(F_STAND, 0.0)
+STAND_Y = LIE_Y - 1.4
+
+# the rub: the right hand reaches across to grip his left upper arm and rubs
+# up and down it three times, while he looks down at it
+LOOK_ARM = {"head": (-0.32, -0.66, 0.68), "neck": (-0.08, -0.2, 0.98), "spine.003": (0, -0.12, 0.99)}
+ARM_L = {"upper_arm.L": (-0.4, -0.18, -0.9), "forearm.L": (-0.33, -0.32, -0.89)}
+
+
+def rub_pose(slide):
+    return {**ARM_L, "upper_arm.R": (0.18, -0.62, -0.76),
+            "forearm.R": (-0.9 - 0.06 * slide, -0.28, 0.32 + 0.3 * slide), **LOOK_ARM}
+
+
+poser.pose(F_RUB, rub_pose(0.0))
+for f in range(F_RUB + 6, F_REAL - 6):
+    t = (f - F_RUB - 6) / FPS
+    poser.pose(f, rub_pose(math.sin(2 * math.pi * t / 0.75)))
+poser.pose(F_REAL, rub_pose(0.0))
+
+# the realisation: the arms lower, the head lifts once and holds, then a slow
+# turn of the whole body to take in the empty plate
+poser.pose(F_LIFT, {"upper_arm.L": (-0.5, -0.25, -0.83), "forearm.L": (-0.45, -0.3, -0.84),
+                    "upper_arm.R": (0.5, -0.25, -0.83), "forearm.R": (0.45, -0.3, -0.84),
+                    "head": (0, -0.18, 0.98), "neck": (0, -0.05, 1.0)})
+poser.pose(F_END, {"upper_arm.L": (-0.5, -0.25, -0.83), "forearm.L": (-0.45, -0.3, -0.84),
+                   "upper_arm.R": (0.5, -0.25, -0.83), "forearm.R": (0.45, -0.3, -0.84),
+                   "head": (0, -0.18, 0.98), "neck": (0, -0.05, 1.0)})
+key(rig, F_TURN, loc=(RX, STAND_Y, 0.0))
+key_rot(F_TURN, 0.0)
+key(rig, F_END, loc=(RX, STAND_Y, 0.0))
+key_rot(F_END, 0.0, 0.0, math.radians(55))
+ground_clamp(rig, body, range(F_LIE, F_END + 1))
 
 # ------------------------------------------------------------ camera
 # Peaceful wide shot at ground level, drifting; the tilt up to the sky; then
 # it follows him all the way down so the plate rushes back into frame.
 HORIZON = Vector((0.0, 80.0, 7.0))
-CAM_BASE = Vector((-34.0, -40.0, 5.5))
-key(cam, F_START, loc=tuple(CAM_BASE))
+key(cam, F_START, loc=(-34.0, -40.0, 5.5))
 key(cam, F_TILT, loc=(-31.0, -39.0, 5.8))
 key(cam, F_FOUND, loc=(-29.0, -38.0, 9.0))                 # rises a little as it looks up
 key(cam, F_LAND - 30, loc=(-28.0, -37.5, 9.5))
 key(cam, F_LAND, loc=(-28.0, -37.5, 6.5))                  # settles back down for the landing
-key(cam, F_END, loc=(-27.5, -37.0, 6.0))
+key(cam, F_LIE - 1, loc=(-27.5, -37.0, 6.0), interp="LINEAR")
 key(target, F_START, loc=tuple(HORIZON))
 key(target, F_TILT, loc=tuple(HORIZON))
-for f in range(F_TILT, F_END + 1):
+for f in range(F_TILT, F_LIE):
     u = min(1.0, (f - F_TILT) / (F_FOUND - F_TILT))
     ease = u * u * (3 - 2 * u)
     scene.frame_set(f)
@@ -175,8 +261,22 @@ for f in range(F_TILT, F_END + 1):
 # impact shake: a few frames of jitter on the camera itself
 for i, (dx, dz) in enumerate(((0.35, -0.25), (-0.3, 0.3), (0.2, -0.15), (-0.1, 0.1), (0.0, 0.0))):
     key(cam, F_LAND + 1 + i, loc=(-28.0 + dx, -37.5, 6.5 + dz), interp="LINEAR")
-# the lens tightens as it finds him, then widens back out as he comes down
-for frame, lens in ((F_TILT, 30), (F_FOUND + 10, 62), (F_LAND - 40, 55), (F_LAND - 6, 32), (F_END, 30)):
+# beat 3 shots: cuts, each a start key and an end key
+SHOTS = [
+    (F_LIE, F_STAND + 6, (-10.0, LIE_Y - 15.0, 4.5), (-9.0, LIE_Y - 14.0, 4.8), (RX, LIE_Y - 3.0, 3.0), (RX, STAND_Y, 4.6)),   # get-up, front-left medium
+    (F_STAND + 7, F_REAL + 6, (4.2, STAND_Y - 8.6, 9.4), (3.8, STAND_Y - 8.2, 9.2), (RX - 0.4, STAND_Y - 0.6, 5.7), (RX - 0.4, STAND_Y - 0.6, 5.7)),  # the rub, from above and his right
+    (F_REAL + 7, F_TURN + 4, (-2.2, STAND_Y - 7.5, 7.6), (-2.0, STAND_Y - 7.2, 7.5), (RX, STAND_Y, 7.4), (RX, STAND_Y, 7.4)),   # the head lifts, close
+    (F_TURN + 5, F_END, (-12.0, STAND_Y - 18.0, 8.0), (-44.0, STAND_Y - 68.0, 26.0), (RX, STAND_Y, 5.0), (RX, STAND_Y, 4.0)),   # the reveal: pulls way back
+]
+for start, end, ca, cb, ta, tb in SHOTS:
+    key(cam, start, loc=ca, interp="LINEAR")
+    key(cam, end, loc=cb, interp="LINEAR")
+    key(target, start, loc=ta, interp="LINEAR")
+    key(target, end, loc=tb, interp="LINEAR")
+# the lens tightens as it finds him, widens back out as he comes down, and
+# goes wide for the reveal
+for frame, lens in ((F_TILT, 30), (F_FOUND + 10, 62), (F_LAND - 40, 55), (F_LAND - 6, 32), (F_LIE - 1, 30),
+                    (F_LIE, 35), (F_TURN + 4, 40), (F_TURN + 5, 28), (F_END, 24)):
     cam.data.lens = lens
     cam.data.keyframe_insert("lens", frame=frame)
 
@@ -192,5 +292,6 @@ scene.render.ffmpeg.constant_rate_factor = "HIGH"
 scene.render.filepath = "//renders/draft2_raw.mp4"
 scene.frame_set(1)
 bad = floor_violations(body, range(F_LAND - 5, F_END + 1))
+spikes = motion_spikes(rig, range(F_LIE + 1, F_END), 0.5, bone="head")
 print("draft 2 keyed", F_START, "->", F_END, "| gravity %.1f studs/s^2" % G, "| below floor:", bad or "none",
-      "| sound cues:", SOUND_CUES)
+      "| head jerks:", spikes or "none", "| sound cues:", SOUND_CUES)
