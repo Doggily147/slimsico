@@ -33,12 +33,15 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `make_tile_texture.py` - draws `textures/tiles.png`, the 64x64 numbered grid of 8-stud tiles (column number on top, row number below, row 1 at the bottom-left). Needs Pillow.
 - `build_character.py` - run inside Blender with the scene open: builds the crowned character as one connected Skin-modifier mesh with subdivision and an auto-generated armature (`CharacterRig`), and switches the baseplate to the numbered grid texture.
 - `rig_utils.py` - shared helpers for the animation scripts: keying with explicit interpolation, a parent-aware bone aimer, and a ground clamp that keeps the body's lowest point on the floor.
+- `build_draft2.py` - draft 2 animation on the main scene (beat 1: the peaceful plate, a sound from above, the camera tilts up and finds Yellow tumbling far up in the sky).
+- `render_draft2.py` - renders draft 2 headless and mixes the sound (wind bed, the falling whistle) plus an optional music bed from `audio/ambient.*`.
 - `build_office.py` - builds the "OfficeTest" scene: an office set, the worker and police officer cloned from Yellow, and the three-attempt robbery with rewinds.
 - `render_office_test.py` - renders OfficeTest and assembles it with the rewinds, subtitles, sound, and an optional music bed from `audio/ambient.*`.
 - `slimsico.blend` - the saved scene: the set, Yellow on the grid (cleared between drafts), and the OfficeTest scene.
 - `renders/scene.png` - 1920x1080 EEVEE render of the empty set.
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
 - `renders/office_test.mp4` - the office robbery test scene with rewinds.
+- `renders/draft2.mp4` - draft 2 so far.
 - `CHANGELOG.md` - full history of changes.
 - `DRAFTS.md` - the draft log; each finished draft is archived under `drafts/` and tagged.
 
@@ -57,7 +60,14 @@ python make_tile_texture.py
 ```
 
 Character: open `slimsico.blend` in Blender and run `build_character.py` from
-the Text editor. Draft animations live under `drafts/`; see `DRAFTS.md`.
+the Text editor, then `build_draft2.py` for the current draft. Finished drafts
+are archived under `drafts/`; see `DRAFTS.md`.
+
+Draft 2 video with sound (needs ffmpeg on PATH):
+
+```
+python render_draft2.py
+```
 
 Office test scene (run `build_office.py` in Blender first):
 

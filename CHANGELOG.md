@@ -2,6 +2,12 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-06 - Draft 2, beat 1: a sound from above
+
+### Added
+- `build_draft2.py`: frames 1-150. A peaceful, slowly drifting wide shot of the empty baseplate under the sky. A faint whistle from above. The camera tilts up and rises, the lens tightens from 30 mm to 66 mm as it searches, and finds Yellow far up in the sky, rolling end over end with a lazy twist, limbs flailing on their own rhythms, drifting closer as he falls.
+- `render_draft2.py`: headless render plus a soft pink-noise wind bed, the long descending whistle that grows as he nears, and the optional music bed.
+
 ## 2026-09-06 - Yellow redesigned for draft 2
 
 ### Changed

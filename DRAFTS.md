@@ -37,3 +37,11 @@ What was learned (carry into draft 2):
 - Run cycle: bent elbows swinging with the legs, forearms not held forward.
 - Cause and effect for props: sound, look, react, then the event lands.
 - Balance render lighting for the yellow (neutral world, soft warm sun).
+
+## Draft 2 - in progress (from 2026-09-06)
+
+Working scripts at the repo root: `build_draft2.py`, `render_draft2.py`. Uses the redesigned Yellow.
+
+Beats so far:
+
+1. The baseplate, peaceful. A sound from above. The camera tilts up and finds Yellow far up in the sky, rolling as he falls.
