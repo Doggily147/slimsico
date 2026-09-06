@@ -33,10 +33,14 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `make_tile_texture.py` - draws `textures/tiles.png`, the 64x64 numbered grid of 8-stud tiles (column number on top, row number below, row 1 at the bottom-left). Needs Pillow.
 - `build_character.py` - run inside Blender with the scene open: builds the crowned character as one connected Skin-modifier mesh with subdivision and an auto-generated armature (`CharacterRig`), and switches the baseplate to the numbered grid texture.
 - `build_opening.py` - run inside Blender after the character exists: names the rig's bones and keys the opening shot (fall from the sky, belly-flop, get up, turn to camera) with a tracking camera, 192 frames at 24 fps.
-- `slimsico.blend` - the saved scene, including the opening animation.
+- `build_orbit.py` - run inside Blender after the opening: keys scene 2, three seconds of the camera orbiting Yellow from three angles (low, eye level, high) while he idles, as frames 193-264.
+- `assemble_intro.py` - renders the three orbit angles as clips and stitches them to the opening with dissolves into `renders/intro.mp4`. Needs ffmpeg.
+- `slimsico.blend` - the saved scene, including both animated scenes.
 - `renders/scene.png` - 1920x1080 EEVEE render of the empty set.
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
-- `renders/opening.mp4` - the rendered opening shot (1080p, H.264).
+- `renders/opening.mp4` - scene 1, the opening shot (1080p, H.264).
+- `renders/orbit_a.mp4`, `orbit_b.mp4`, `orbit_c.mp4` - scene 2, the three orbit angles.
+- `renders/intro.mp4` - both scenes cut together with dissolves.
 - `CHANGELOG.md` - full history of changes.
 
 ## Rebuild
@@ -61,6 +65,13 @@ Opening shot video (the .blend carries the output settings):
 
 ```
 blender -b slimsico.blend -a
+```
+
+Orbit scene and the stitched intro (renders the three orbit clips, then
+crossfades them onto the opening):
+
+```
+python assemble_intro.py
 ```
 
 Made with Blender 5.0.

@@ -2,6 +2,13 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-06 - Scene 2: orbit
+
+### Added
+- `build_orbit.py`: three seconds (frames 193-264) of the camera orbiting Yellow from three angles, one second each: a low hero shot sweeping across his front, an eye-level move from his right side round to the front, and a high angle looking down from front-left. He sways, breathes, glances left and right, and looks up at the high camera.
+- `assemble_intro.py`: renders each orbit angle as its own clip and stitches them to the opening with a 0.6 s dissolve in and 0.35 s dissolves between angles, producing `renders/intro.mp4`.
+- `renders/orbit_a.mp4`, `orbit_b.mp4`, `orbit_c.mp4` and `renders/intro.mp4`.
+
 ## 2026-09-05 - Opening shot
 
 ### Added
