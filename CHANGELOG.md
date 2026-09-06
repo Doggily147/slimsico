@@ -2,14 +2,26 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-06 - Polish pass: sound, the crate reaction, a real run
+
+### Changed
+- The crate sequence is now cause and effect: a falling whistle starts, he cocks his head, looks up and tracks the first crate down the sky with his face (not just the head bone), spins and bolts while both crates land behind him, slows to a stop, turns back and sees they have landed. The camera cranes up for the run and sinks forward over the crates toward him at the end.
+- The run cycle: arms swing opposite the legs with bent elbows, the forearm rising as the arm comes forward and dropping as it goes back, instead of both forearms held out in front. Longer, smooth ramps in and out of the walk and run.
+- Turn to run lengthened to 14 frames so it no longer snaps.
+- Ground clamp smoothed over neighbouring frames, but never below the raw contact height, so the walk and run bob without jitter or dipping.
+- Head movement in the "Where am I?" section removed: he lifts his head from his hands and holds it straight ahead. After the crates land his head settles once and holds.
+
+### Added
+- Sound, synthesised with ffmpeg in `render_episode.py`: a belly-flop splat, a descending whistle for each falling crate, and a heavy thud for each landing, placed on the exact frames.
+- `rig_utils.motion_spikes`: flags frames where the head accelerates unnaturally, used as a jerk check after keying, alongside the floor check.
+
 ## 2026-09-06 - Second beat: hands, "Where am I?", the walk, the crates
 
 ### Added
-- `build_continue.py`: frames 151-546. He lifts his hands and looks at them, looks left and right in close-up, a wide shot while the subtitle "Where am I?" plays, then a side-tracking walk of about 14 studs, and two big crates drop out of the sky either side of him. He looks up as they fall, flinches when they land, and looks at each crate. The camera then cranes up to a high shot and he bolts, running off past the crates. Five camera set-ups plus the crane.
-- Head movement is deliberately sparse: one look down at the hands, one left, one right, one back to centre, one up at the crates, one at each crate, with holds between. No head bob in the walk or run.
+- `build_continue.py`: frames 151 onward. He lifts his hands and looks at them, a close-up as he lifts his head, a wide shot while the subtitle "Where am I?" plays, a side-tracking walk of about 14 studs, then the crate sequence above. Five camera set-ups plus the crane.
 - `build_props.py`: two detailed wooden crates (corner posts, slatted sides with gaps, base boards, diagonal braces, iron corner brackets with bolt heads, procedural wood grain). Crate 2 is open-topped with a bundle of upright logs (bark texture, growth-ring ends) standing out of it.
-- `rig_utils.py`: shared keying helpers, the parent-aware bone aimer, and a ground clamp that keys the rig's height so the lowest point of the body always touches the floor. The walk uses it, which also gives the natural bob.
-- `render_episode.py`: renders frames 1-546 headless and burns the subtitle in with ffmpeg, producing `renders/episode.mp4`.
+- `rig_utils.py`: shared keying helpers, the parent-aware bone aimer, and a ground clamp that keys the rig's height so the lowest point of the body always touches the floor.
+- `render_episode.py`: renders the episode headless and burns the subtitle in with ffmpeg, producing `renders/episode.mp4`.
 
 ### Changed
 - The episode video replaces `renders/opening.mp4`; the opening is its first 150 frames.

@@ -35,12 +35,12 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `rig_utils.py` - shared helpers for the animation scripts: keying with explicit interpolation, a parent-aware bone aimer, and a ground clamp that keeps the body's lowest point on the floor.
 - `build_opening.py` - run inside Blender after the character exists: names the rig's bones and keys the opening shot (fall from the sky, belly-flop, get up) with a tracking camera, frames 1-150.
 - `build_props.py` - two detailed wooden crates (slats, posts, braces, iron brackets, bolts), one open-topped with a bundle of logs.
-- `build_continue.py` - frames 151-546: he looks at his hands, looks around ("Where am I?"), walks, the crates drop in beside him, the camera cranes up and he runs; five camera set-ups plus the crane.
-- `render_episode.py` - renders frames 1-546 headless and burns the subtitle in with ffmpeg.
-- `slimsico.blend` - the saved scene, including the props and all 546 frames of animation.
+- `build_continue.py` - frames 151-561: he looks at his hands, says "Where am I?" (subtitle), walks, hears a whistle, looks up at the falling crates, bolts while they land, slows, turns back and sees them; five camera set-ups plus a crane.
+- `render_episode.py` - renders the episode headless, burns the subtitle in and adds the synthesised sound cues (splat, whistles, thuds) with ffmpeg.
+- `slimsico.blend` - the saved scene, including the props and all 561 frames of animation.
 - `renders/scene.png` - 1920x1080 EEVEE render of the empty set.
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
-- `renders/episode.mp4` - the rendered episode so far, 22.75 s at 1080p with subtitles.
+- `renders/episode.mp4` - the rendered episode so far, 23.4 s at 1080p with subtitles and sound.
 - `CHANGELOG.md` - full history of changes.
 
 ## Rebuild
@@ -61,7 +61,7 @@ Character and animation: open `slimsico.blend` in Blender and run, from the
 Text editor, `build_character.py`, then `build_opening.py`, `build_props.py`
 and `build_continue.py`. Each can be re-run; it replaces its own part.
 
-Episode video with subtitles (needs ffmpeg on PATH):
+Episode video with subtitles and sound (needs ffmpeg on PATH):
 
 ```
 python render_episode.py

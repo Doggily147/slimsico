@@ -104,16 +104,45 @@ def lowest_point(body, frame):
     return min((mw @ v.co).z for v in ev.data.vertices)
 
 
-def ground_clamp(rig, body, frames, floor=0.0):
+def ground_clamp(rig, body, frames, floor=0.0, smooth=1):
     """Re-key the rig's z on each frame so the body's lowest point sits on the
-    floor. Used for walking: the stance foot always touches, and the body
-    bobs naturally as the legs swing."""
+    floor. Used for walking and running: the stance foot always touches and
+    the body bobs naturally. The corrections are averaged over neighbouring
+    frames (`smooth` each side) so the bob is smooth rather than jittery."""
+    frames = list(frames)
+    heights = []
     for f in frames:
+        bpy.context.scene.frame_set(f)
         low = lowest_point(body, f)
-        z = rig.location.z + (floor - low)
+        heights.append(rig.location.z + (floor - low))
+    if smooth:
+        padded = [heights[0]] * smooth + heights + [heights[-1]] * smooth
+        averaged = [sum(padded[i:i + 2 * smooth + 1]) / (2 * smooth + 1) for i in range(len(heights))]
+        # smooth, but never lower than the raw contact height: no dipping
+        heights = [max(a, h) for a, h in zip(averaged, heights)]
+    for f, z in zip(frames, heights):
+        bpy.context.scene.frame_set(f)
         key(rig, f, loc=(rig.location.x, rig.location.y, z), interp="LINEAR")
 
 
 def floor_violations(body, frames, tolerance=0.03):
     """Frames where the body dips below the floor, with the depth."""
     return {f: round(z, 2) for f in frames if (z := lowest_point(body, f)) < -tolerance}
+
+
+def motion_spikes(obj, frames, threshold, bone=None):
+    """Frames where `obj` (or one of its pose bones) accelerates harder than
+    `threshold` studs per frame squared: a quick way to find jerks."""
+    positions = []
+    for f in frames:
+        bpy.context.scene.frame_set(f)
+        if bone is not None:
+            positions.append(obj.matrix_world @ obj.pose.bones[bone].head)
+        else:
+            positions.append(obj.matrix_world.translation.copy())
+    spikes = {}
+    for i in range(1, len(positions) - 1):
+        accel = (positions[i + 1] - 2 * positions[i] + positions[i - 1]).length
+        if accel > threshold:
+            spikes[frames[i]] = round(accel, 2)
+    return spikes
