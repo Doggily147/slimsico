@@ -2,6 +2,17 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-06 - Second beat: hands, "Where am I?", the walk, the crates
+
+### Added
+- `build_continue.py`: frames 151-450. He lifts his hands and looks at them, looks left and right in close-up, a wide shot while the subtitle "Where am I?" plays, then a side-tracking walk of about 14 studs, and two big crates drop out of the sky either side of him. He looks up as they fall, flinches when they land, then looks at each crate. Five camera set-ups cut together.
+- `build_props.py`: two detailed wooden crates (corner posts, slatted sides with gaps, base boards, diagonal braces, iron corner brackets with bolt heads, procedural wood grain). Crate 2 is open-topped with a bundle of upright logs (bark texture, growth-ring ends) standing out of it.
+- `rig_utils.py`: shared keying helpers, the parent-aware bone aimer, and a ground clamp that keys the rig's height so the lowest point of the body always touches the floor. The walk uses it, which also gives the natural bob.
+- `render_episode.py`: renders frames 1-450 headless and burns the subtitle in with ffmpeg, producing `renders/episode.mp4`.
+
+### Changed
+- The episode video replaces `renders/opening.mp4`; the opening is its first 150 frames.
+
 ## 2026-09-06 - Opening ends on his feet
 
 ### Removed

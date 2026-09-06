@@ -74,26 +74,11 @@ for name in ("Crown", "EyeL", "EyeR", "CatchlightL", "CatchlightR", "Mouth"):
     o.matrix_parent_inverse = head_parent_matrix.inverted()
     o.matrix_basis = world
 
-PREFS = bpy.context.preferences.edit
+import os
+import sys
 
-
-def key(obj, frame, loc=None, rot=None, scale=None, interp="BEZIER"):
-    """Key the given channels at `frame`; new keys take `interp` interpolation."""
-    scene.frame_set(frame)
-    previous = PREFS.keyframe_new_interpolation_type
-    PREFS.keyframe_new_interpolation_type = interp
-    try:
-        if loc is not None:
-            obj.location = loc
-            obj.keyframe_insert("location", frame=frame)
-        if rot is not None:
-            obj.rotation_euler = rot
-            obj.keyframe_insert("rotation_euler", frame=frame)
-        if scale is not None:
-            obj.scale = scale
-            obj.keyframe_insert("scale", frame=frame)
-    finally:
-        PREFS.keyframe_new_interpolation_type = previous
+sys.path.insert(0, os.path.dirname(bpy.data.filepath))
+from rig_utils import key  # noqa: E402
 
 
 # ------------------------------------------------------------ root motion

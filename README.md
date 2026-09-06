@@ -32,11 +32,15 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `build_scene.py` - builds the whole scene from an empty file, saves `slimsico.blend`, and renders `renders/scene.png`.
 - `make_tile_texture.py` - draws `textures/tiles.png`, the 64x64 numbered grid of 8-stud tiles (column number on top, row number below, row 1 at the bottom-left). Needs Pillow.
 - `build_character.py` - run inside Blender with the scene open: builds the crowned character as one connected Skin-modifier mesh with subdivision and an auto-generated armature (`CharacterRig`), and switches the baseplate to the numbered grid texture.
-- `build_opening.py` - run inside Blender after the character exists: names the rig's bones and keys the opening shot (fall from the sky, belly-flop, get up) with a tracking camera, 150 frames at 24 fps.
-- `slimsico.blend` - the saved scene, including the opening animation.
+- `rig_utils.py` - shared helpers for the animation scripts: keying with explicit interpolation, a parent-aware bone aimer, and a ground clamp that keeps the body's lowest point on the floor.
+- `build_opening.py` - run inside Blender after the character exists: names the rig's bones and keys the opening shot (fall from the sky, belly-flop, get up) with a tracking camera, frames 1-150.
+- `build_props.py` - two detailed wooden crates (slats, posts, braces, iron brackets, bolts), one open-topped with a bundle of logs.
+- `build_continue.py` - frames 151-450: he looks at his hands, looks around ("Where am I?"), walks, and the crates drop in beside him; five camera set-ups.
+- `render_episode.py` - renders frames 1-450 headless and burns the subtitle in with ffmpeg.
+- `slimsico.blend` - the saved scene, including the props and all 450 frames of animation.
 - `renders/scene.png` - 1920x1080 EEVEE render of the empty set.
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
-- `renders/opening.mp4` - the rendered opening shot (1080p, H.264).
+- `renders/episode.mp4` - the rendered episode so far, 18.75 s at 1080p with subtitles.
 - `CHANGELOG.md` - full history of changes.
 
 ## Rebuild
@@ -53,14 +57,14 @@ Grid texture:
 python make_tile_texture.py
 ```
 
-Character: open `slimsico.blend` in Blender and run `build_character.py` from
-the Text editor. Re-running it replaces the character. Then run
-`build_opening.py` the same way to key the opening shot.
+Character and animation: open `slimsico.blend` in Blender and run, from the
+Text editor, `build_character.py`, then `build_opening.py`, `build_props.py`
+and `build_continue.py`. Each can be re-run; it replaces its own part.
 
-Opening shot video (the .blend carries the output settings):
+Episode video with subtitles (needs ffmpeg on PATH):
 
 ```
-blender -b slimsico.blend -a
+python render_episode.py
 ```
 
 Made with Blender 5.0.
