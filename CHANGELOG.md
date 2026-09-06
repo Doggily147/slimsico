@@ -2,6 +2,14 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-06 - Yellow redesigned for draft 2
+
+### Changed
+- Proportions: a bigger head (about a third of his height), a shorter and softer body, thicker limbs with the hands at hip height, and big rounded feet. About 9 studs tall.
+- Face: larger eyes with bigger catchlights and a slightly wider smile. Crown scaled up to match the head.
+- Deformation: the corrective smooth (which warned about rest shapes) is replaced by a light smooth pass; a touch of subsurface softens the shading without adding shine.
+- Rig: bones are now named from the joints they run to inside `build_character.py` (`spine.002`, `upper_arm.L`, ...), and the crown, eyes and mouth are bone-parented to the head at build time, so any animation script can use the rig straight away.
+
 ## 2026-09-06 - Draft 1 archived
 
 ### Changed

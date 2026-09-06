@@ -15,7 +15,7 @@ import bmesh
 import bpy
 import math
 import os
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 ROOT = os.path.dirname(bpy.data.filepath) if bpy.data.filepath else os.getcwd()
 TILE_TEX = os.path.join(ROOT, "textures", "tiles.png")
@@ -77,6 +77,10 @@ col = bpy.data.collections.new("Character")
 scene.collection.children.link(col)
 
 YELLOW = material("WobblyYellow", (1.0, 0.72, 0.08), rough=0.95)
+# a touch of subsurface softens the shading without adding any shine
+_yb = YELLOW.node_tree.nodes["Principled BSDF"]
+_yb.inputs["Subsurface Weight"].default_value = 0.12
+_yb.inputs["Subsurface Radius"].default_value = (0.5, 0.35, 0.1)
 DARK = material("FaceDark", (0.06, 0.05, 0.04), rough=0.8)
 GOLD = material("CrownGold", (1.0, 0.80, 0.25), rough=0.5, metallic=0.7)
 GEM_RED = material("CrownGemRed", (0.85, 0.10, 0.12), rough=0.4)
@@ -96,28 +100,30 @@ def link(obj, parent=None):
 # ------------------------------------------------------------ body skeleton
 # Each joint: name, position, (radius across, radius front-to-back).
 # The Skin modifier wraps this graph in one continuous quad mesh.
+# Friendlier proportions: a bigger head, a shorter and softer body, thicker
+# limbs with the hands at hip height, and big rounded feet. About 9 studs tall.
 JOINTS = {
-    "pelvis":    ((0, 0, 3.55), (1.18, 0.88)),
-    "belly":     ((0, 0, 4.45), (1.26, 0.96)),
-    "chest":     ((0, 0, 5.45), (1.22, 0.90)),
-    "shoulders": ((0, 0, 6.25), (1.12, 0.76)),
-    "neck":      ((0, 0, 6.85), (0.50, 0.48)),
-    "head_base": ((0, 0, 7.45), (0.90, 0.86)),
-    "head":      ((0, 0, 8.15), (1.12, 1.02)),
-    "head_top":  ((0, 0, 8.85), (0.82, 0.78)),
+    "pelvis":    ((0, 0, 3.35), (1.18, 0.92)),
+    "belly":     ((0, 0, 4.15), (1.28, 1.02)),
+    "chest":     ((0, 0, 5.05), (1.22, 0.94)),
+    "shoulders": ((0, 0, 5.75), (1.08, 0.80)),
+    "neck":      ((0, 0, 6.25), (0.56, 0.52)),
+    "head_base": ((0, 0, 6.75), (1.02, 0.96)),
+    "head":      ((0, 0, 7.55), (1.30, 1.18)),
+    "head_top":  ((0, 0, 8.35), (0.96, 0.90)),
 }
 CHAIN = [("pelvis", "belly"), ("belly", "chest"), ("chest", "shoulders"),
          ("shoulders", "neck"), ("neck", "head_base"), ("head_base", "head"), ("head", "head_top")]
 for s, side in ((-1, "L"), (1, "R")):
     JOINTS.update({
-        "shoulder" + side: ((s * 1.30, 0.0, 6.00), (0.56, 0.54)),
-        "elbow" + side:    ((s * 1.78, -0.10, 4.95), (0.46, 0.46)),
-        "wrist" + side:    ((s * 2.10, -0.28, 3.95), (0.42, 0.42)),
-        "hand" + side:     ((s * 2.28, -0.40, 3.40), (0.54, 0.36)),
-        "hip" + side:      ((s * 0.62, 0.0, 3.10), (0.58, 0.56)),
-        "knee" + side:     ((s * 0.66, 0.0, 1.85), (0.50, 0.50)),
-        "ankle" + side:    ((s * 0.70, 0.0, 0.75), (0.44, 0.44)),
-        "foot" + side:     ((s * 0.74, -0.80, 0.45), (0.50, 0.40)),
+        "shoulder" + side: ((s * 1.32, 0.0, 5.55), (0.60, 0.58)),
+        "elbow" + side:    ((s * 1.72, -0.12, 4.45), (0.50, 0.50)),
+        "wrist" + side:    ((s * 1.98, -0.28, 3.50), (0.46, 0.46)),
+        "hand" + side:     ((s * 2.12, -0.38, 3.02), (0.58, 0.40)),
+        "hip" + side:      ((s * 0.60, 0.0, 2.95), (0.62, 0.60)),
+        "knee" + side:     ((s * 0.65, 0.0, 1.75), (0.56, 0.56)),
+        "ankle" + side:    ((s * 0.70, 0.0, 0.78), (0.50, 0.50)),
+        "foot" + side:     ((s * 0.75, -0.85, 0.46), (0.56, 0.42)),
     })
     CHAIN += [("shoulders", "shoulder" + side), ("shoulder" + side, "elbow" + side),
               ("elbow" + side, "wrist" + side), ("wrist" + side, "hand" + side),
@@ -150,10 +156,9 @@ for i, name in enumerate(order):
 sub = body.modifiers.new("Subdivision", "SUBSURF")
 sub.levels = 2
 sub.render_levels = 3
-smooth = body.modifiers.new("Polish", "CORRECTIVE_SMOOTH")
-smooth.factor = 0.5
-smooth.iterations = 8
-smooth.smooth_type = "LENGTH_WEIGHTED"
+smooth = body.modifiers.new("Polish", "SMOOTH")       # a light relax; no rest-shape warnings
+smooth.factor = 0.35
+smooth.iterations = 3
 body.data.shade_smooth()
 
 # armature from the same skeleton so the character can be posed
@@ -173,6 +178,20 @@ try:
     # keep the armature deform last so the skin/subdivision shape is what gets posed
     arm_mod = next(m for m in body.modifiers if m.type == "ARMATURE")
     body.modifiers.move(body.modifiers.find(arm_mod.name), len(body.modifiers) - 1)
+    # name the bones from the joints they run to, so animation scripts can
+    # address them ("spine.002", "upper_arm.L", ...) whatever the build order
+    BONE_NAMES = {"belly": "spine.001", "chest": "spine.002", "shoulders": "spine.003", "neck": "neck",
+                  "head_base": "head.001", "head": "head", "head_top": "head.top"}
+    for side in ("L", "R"):
+        BONE_NAMES.update({"shoulder" + side: "shoulder." + side, "elbow" + side: "upper_arm." + side,
+                           "wrist" + side: "forearm." + side, "hand" + side: "hand." + side,
+                           "hip" + side: "hip." + side, "knee" + side: "thigh." + side,
+                           "ankle" + side: "shin." + side, "foot" + side: "foot." + side})
+    by_pos = {tuple(round(c, 2) for c in pos): name for name, (pos, _) in JOINTS.items()}
+    for bone in armature.data.bones:
+        tail = tuple(round(c, 2) for c in bone.tail_local)
+        joint = by_pos.get(tail)
+        bone.name = BONE_NAMES.get(joint, "root" if joint == "pelvis" else bone.name)
 except RuntimeError as ex:
     print("armature skipped:", ex)
 
@@ -206,24 +225,24 @@ MOUTH = material("MouthDark", (0.16, 0.07, 0.05), rough=0.55)
 
 # eyes: soft ovals sunk slightly into the head, tilted a touch outward, with a catchlight
 for s, side in ((-1, "L"), (1, "R")):
-    loc, n = on_body((s * 0.45, -2.0, HEAD_C.z + 0.22))
+    loc, n = on_body((s * 0.52, -2.0, HEAD_C.z + 0.25))
     rot = n.to_track_quat("Z", "Y")
-    eye = sphere("Eye" + side, 0.17, loc - n * 0.03, EYE, scale=(0.82, 1.0, 0.5), rot=rot)
+    eye = sphere("Eye" + side, 0.21, loc - n * 0.04, EYE, scale=(0.84, 1.0, 0.5), rot=rot)
     eye.rotation_mode = "XYZ"
     eye.rotation_euler.rotate_axis("Y", math.radians(-8 * s))
     up = Vector((0, 0, 1))
     right = n.cross(up).normalized()
-    sphere("Catchlight" + side, 0.035, loc + n * 0.06 + right * (-0.045) + up * 0.055, CATCHLIGHT, parent=eye)
+    sphere("Catchlight" + side, 0.045, loc + n * 0.07 + right * (-0.055) + up * 0.07, CATCHLIGHT, parent=eye)
 
 # mouth: a gentle smile drawn as a tapered stroke lying on the face
 curve = bpy.data.curves.new("Mouth", "CURVE")
 curve.dimensions = "3D"
-curve.bevel_depth = 0.042
+curve.bevel_depth = 0.048
 curve.bevel_resolution = 6
 curve.fill_mode = "FULL"
 curve.use_fill_caps = True
 spline = curve.splines.new("BEZIER")
-ARC_R, ARC_SPAN, POINTS = 1.0, math.radians(100), 9
+ARC_R, ARC_SPAN, POINTS = 1.1, math.radians(104), 9
 spline.bezier_points.add(POINTS - 1)
 for i, bpt in enumerate(spline.bezier_points):
     t = i / (POINTS - 1)
@@ -241,7 +260,7 @@ link(mouth, body)
 
 # ------------------------------------------------------------ crown
 SEGMENTS, PEAKS = 48, 6
-R_CROWN = 0.84
+R_CROWN = 0.92
 BAND_Z, VALLEY_Z, PEAK_Z = 0.0, 0.32, 0.8
 cb = bmesh.new()
 bottom, top = [], []
@@ -286,6 +305,25 @@ for i in range(PEAKS):
            GEM_RED if i % 2 == 0 else GEM_BLUE, parent=crown)
     bpy.context.object.matrix_parent_inverse.identity()
 
+# ------------------------------------------------------------ face and crown ride on the head bone
+# Parented to the body object they would stay behind when the head is posed.
+if armature is not None:
+    bpy.context.view_layer.update()
+    head_pb = armature.pose.bones["head"]
+    head_parent = armature.matrix_world @ head_pb.matrix @ Matrix.Translation((0, head_pb.length, 0))
+    for name in ("Crown", "EyeL", "EyeR", "Mouth"):
+        o = bpy.data.objects[name]
+        world = o.matrix_world.copy()
+        o.parent = armature
+        o.parent_type = "BONE"
+        o.parent_bone = "head"
+        o.matrix_parent_inverse = head_parent.inverted()
+        loc, rot, scl = world.decompose()
+        o.location, o.scale = loc, scl
+        o.rotation_mode = "QUATERNION"
+        o.rotation_quaternion = rot
+
 bpy.ops.object.select_all(action="DESELECT")
 bpy.context.view_layer.objects.active = body
-print("built", len(col.objects), "objects; armature:", armature.name if armature else None)
+print("built", len(col.objects), "objects; armature:", armature.name if armature else None,
+      "| bones:", sorted(b.name for b in armature.data.bones) if armature else None)

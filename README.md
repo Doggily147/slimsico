@@ -17,8 +17,8 @@ comfortable to use in a professional animated series:
 - **Rigged.** An armature is generated with the body so the character can be
   posed and animated straight away.
 - **Distinct look.** Human Fall Flat proportions (egg head, chunky soft torso,
-  sausage limbs, mitten hands) but its own identity: tall, matte yellow, a
-  friendly face, and a crown.
+  sausage limbs, mitten hands) but its own identity: a big friendly head,
+  matte yellow, and a crown.
 - **Reproducible.** Everything is built by scripts checked into this repo, so
   the scene and character can be regenerated and tweaked by editing numbers,
   not by hand-modelling.
