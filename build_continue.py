@@ -244,6 +244,14 @@ SHOTS = [
 for start, end, a, b in SHOTS:
     key(cam, start, loc=a, interp="LINEAR")
     key(cam, end, loc=b, interp="LINEAR")
+# the look-up: cut to a low camera just behind his shoulder, tilted up and
+# tracking the first crate as it falls, then cut back to the wide shot
+F_UPSHOT, F_UPSHOT_END = F_LOOKUP + 3, F_TURN - 1
+wide_a, wide_b = SHOTS[-1][2], SHOTS[-1][3]
+u = (F_UPSHOT - 1 - F_CRATES) / (F_TURN - F_CRATES)
+key(cam, F_UPSHOT - 1, loc=tuple(a + (b - a) * u for a, b in zip(wide_a, wide_b)), interp="LINEAR")
+key(cam, F_UPSHOT, loc=(2.0, WALK_END_Y + 5.2, 5.6), interp="LINEAR")
+key(cam, F_UPSHOT_END, loc=(1.8, WALK_END_Y + 4.9, 5.8), interp="LINEAR")
 for f in range(F_WALK, F_CRATES):                                           # side tracking shot, full body
     key(cam, f, loc=(-19.0, STAND[1] - WALK_SPEED * (f - F_WALK) - 1.0, 4.5), interp="LINEAR")
 # the crane: as he turns to run the camera rises to a high shot, holds while
@@ -265,14 +273,24 @@ if track_chest is None:
     track_chest.subtarget = "spine.002"
     track_chest.track_axis = "TRACK_NEGATIVE_Z"
     track_chest.up_axis = "UP_Y"
-for frame, head_on in ((1, 1.0), (F_WALK, 0.0), (F_CRATES, 1.0)):
+# A third constraint tracks the falling crate for the look-up shot.
+track_crate = cam.constraints.get("TrackCrate")
+if track_crate is None:
+    track_crate = cam.constraints.new("TRACK_TO")
+    track_crate.name = "TrackCrate"
+    track_crate.target = crate1
+    track_crate.track_axis = "TRACK_NEGATIVE_Z"
+    track_crate.up_axis = "UP_Y"
+PATHS = tuple('constraints["%s"].influence' % n for n in ("TrackHead", "TrackChest", "TrackCrate"))
+for frame, (head_on, chest_on, crate_on) in ((1, (1, 0, 0)), (F_WALK, (0, 1, 0)), (F_CRATES, (1, 0, 0)),
+                                             (F_UPSHOT, (0, 0, 1)), (F_UPSHOT_END + 1, (1, 0, 0))):
     scene.frame_set(frame)
     track_head.influence = head_on
-    track_chest.influence = 1.0 - head_on
-    cam.keyframe_insert('constraints["TrackHead"].influence', frame=frame)
-    cam.keyframe_insert('constraints["TrackChest"].influence', frame=frame)
-    set_interpolation(cam, frame, "CONSTANT",
-                      ('constraints["TrackHead"].influence', 'constraints["TrackChest"].influence'))
+    track_chest.influence = chest_on
+    track_crate.influence = crate_on
+    for path in PATHS:
+        cam.keyframe_insert(path, frame=frame)
+    set_interpolation(cam, frame, "CONSTANT", PATHS)
 
 
 # ------------------------------------------------------------ output

@@ -12,6 +12,7 @@ All notable changes to slimsico. Newest first. Dates are commit dates.
 - Head movement in the "Where am I?" section removed: he lifts his head from his hands and holds it straight ahead. After the crates land his head settles once and holds.
 
 ### Added
+- A look-up shot: as he looks up, the camera cuts to a low position just behind his shoulder, tilted up and tracking the first crate as it falls, then cuts back to the wide shot as he turns to run.
 - Sound, synthesised with ffmpeg in `render_episode.py`: a belly-flop splat, a descending whistle for each falling crate, and a heavy thud for each landing, placed on the exact frames.
 - `rig_utils.motion_spikes`: flags frames where the head accelerates unnaturally, used as a jerk check after keying, alongside the floor check.
 

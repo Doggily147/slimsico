@@ -35,7 +35,7 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `rig_utils.py` - shared helpers for the animation scripts: keying with explicit interpolation, a parent-aware bone aimer, and a ground clamp that keeps the body's lowest point on the floor.
 - `build_opening.py` - run inside Blender after the character exists: names the rig's bones and keys the opening shot (fall from the sky, belly-flop, get up) with a tracking camera, frames 1-150.
 - `build_props.py` - two detailed wooden crates (slats, posts, braces, iron brackets, bolts), one open-topped with a bundle of logs.
-- `build_continue.py` - frames 151-561: he looks at his hands, says "Where am I?" (subtitle), walks, hears a whistle, looks up at the falling crates, bolts while they land, slows, turns back and sees them; five camera set-ups plus a crane.
+- `build_continue.py` - frames 151-561: he looks at his hands, says "Where am I?" (subtitle), walks, hears a whistle, looks up at the falling crates (with a low shot tilted up at them), bolts while they land, slows, turns back and sees them; six camera set-ups plus a crane.
 - `render_episode.py` - renders the episode headless, burns the subtitle in and adds the synthesised sound cues (splat, whistles, thuds) with ffmpeg.
 - `slimsico.blend` - the saved scene, including the props and all 561 frames of animation.
 - `renders/scene.png` - 1920x1080 EEVEE render of the empty set.
