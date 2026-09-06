@@ -2,6 +2,15 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-06 - Office test scene
+
+### Added
+- `build_office.py`: a second Blender scene, "OfficeTest", with an office set (carpet, walls, ceiling, a door on a hinge, window, clock, picture, filing cabinet, plant, ceiling panel light) and a desk with monitor, keyboard, mouse, papers, mug and lamp, plus an office chair that tips about its back edge.
+- Three characters cloned from Yellow's rig via `rig_utils.clone_character`: Yellow (with crown and a pistol in his right hand), a blue office worker with a tie, and a navy police officer with a cap and badge.
+- The scene: Yellow walks in and points the gun ("Hand it over."). Attempt 1: he shoots, muzzle flash, the worker and chair go over backwards. Rewind. Attempt 2: he slips, lands on his back, the officer bursts in and stands over him ("Freeze!"). Rewind. Attempt 3: the worker leans over the desk with a shouting mouth and angry brows and yells "WILL YOU STOP THAT?!"; Yellow shrinks back and lowers the gun. Nine camera set-ups.
+- `render_office_test.py`: renders the scene headless, builds the rewinds at assembly time (the footage since the gun came up, reversed and sped up with a desaturated, noisy VHS look and a "<< REWIND" stamp), burns in the subtitles, and mixes synthesised sound: typing, door, gunshot, chair crash, siren, the yell, and a rewind whoosh. Mixes in an ambient music bed quietly if a track is placed at `audio/ambient.*`.
+- `rig_utils.gait_dirs`: the walk and run cycle pose generator, shared by the scenes.
+
 ## 2026-09-06 - Polish pass: sound, the crate reaction, a real run
 
 ### Changed

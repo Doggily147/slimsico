@@ -130,6 +130,96 @@ def floor_violations(body, frames, tolerance=0.03):
     return {f: round(z, 2) for f in frames if (z := lowest_point(body, f)) < -tolerance}
 
 
+def gait_dirs(t, stride, ease, run=False):
+    """Bone directions for one frame of a walk (or run) cycle in the rig's
+    rest space: legs swing with a knee bend on the forward swing, arms swing
+    opposite with bent elbows. `ease` in 0..1 scales the whole thing."""
+    import math
+    phase = 2 * math.pi * t / stride
+    leg_swing, knee, arm_swing = (0.7, 0.9, 0.55) if run else (0.42, 0.55, 0.4)
+    dirs = {}
+    for side, ph in (("L", phase), ("R", phase + math.pi)):
+        swing = leg_swing * math.sin(ph) * ease
+        bend = knee * max(0.0, math.cos(ph)) * ease
+        sx = -0.03 if side == "L" else 0.03
+        dirs["thigh." + side] = (sx, -swing, -1.0)
+        dirs["shin." + side] = (sx, -swing + bend, -1.0)
+        s = -arm_swing * math.sin(ph) * ease
+        ax = -0.38 if side == "L" else 0.38
+        if run:
+            dirs["upper_arm." + side] = (ax, s, -0.8)
+            dirs["forearm." + side] = (ax * 0.7, -0.45 - 0.3 * ease, -0.9 - 1.1 * s)
+        else:
+            dirs["upper_arm." + side] = (ax, s, -0.88)
+            dirs["forearm." + side] = (ax * 0.9, s - 0.2 * ease, -0.85)
+    return dirs
+
+
+def clone_character(src_body, src_rig, name, colour, extras=("EyeL", "EyeR", "CatchlightL", "CatchlightR", "Mouth"),
+                    collection=None):
+    """Duplicate the rigged character (mesh, armature, face parts) as a new
+    independent character with its own body colour. Returns (body, rig)."""
+    scene = bpy.context.scene
+    col = collection or scene.collection
+    rig = src_rig.copy()
+    rig.data = src_rig.data.copy()
+    rig.name = name + "Rig"
+    rig.animation_data_clear()
+    # the source rig may be mid-animation; the clone starts at the origin, at rest
+    rig.location = (0, 0, 0)
+    rig.rotation_euler = (0, 0, 0)
+    rig.scale = (1, 1, 1)
+    for pb in rig.pose.bones:
+        pb.rotation_quaternion = (1, 0, 0, 0)
+        pb.location = (0, 0, 0)
+    col.objects.link(rig)
+
+    body = src_body.copy()
+    body.data = src_body.data.copy()
+    body.name = name
+    body.animation_data_clear()
+    body.parent = rig
+    body.matrix_parent_inverse.identity()
+    body.matrix_basis.identity()
+    for m in body.modifiers:
+        if m.type == "ARMATURE":
+            m.object = rig
+    mat = src_body.data.materials[0].copy()
+    mat.name = name + "Skin"
+    mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (*colour, 1)
+    mat.diffuse_color = (*colour, 1)
+    body.data.materials.clear()
+    body.data.materials.append(mat)
+    col.objects.link(body)
+
+    made = {src_body.name: body}
+    for extra in extras:
+        src = bpy.data.objects.get(extra)
+        if src is None:
+            continue
+        o = src.copy()
+        if o.data is not None:
+            o.data = o.data.copy()
+        o.name = name + "_" + extra
+        o.animation_data_clear()
+        col.objects.link(o)
+        made[extra] = o
+    # re-parent the copies to the new rig / body / eyes
+    for extra, o in made.items():
+        if extra == src_body.name:
+            continue
+        src = bpy.data.objects[extra]
+        parent = src.parent
+        if parent is src_rig:
+            o.parent = rig
+            o.parent_type = src.parent_type
+            o.parent_bone = src.parent_bone
+        elif parent is not None and parent.name in made:
+            o.parent = made[parent.name]
+        o.matrix_parent_inverse = src.matrix_parent_inverse.copy()
+    return body, rig
+
+
 def motion_spikes(obj, frames, threshold, bone=None):
     """Frames where `obj` (or one of its pose bones) accelerates harder than
     `threshold` studs per frame squared: a quick way to find jerks."""

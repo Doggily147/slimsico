@@ -37,10 +37,13 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `build_props.py` - two detailed wooden crates (slats, posts, braces, iron brackets, bolts), one open-topped with a bundle of logs.
 - `build_continue.py` - frames 151-561: he looks at his hands, says "Where am I?" (subtitle), walks, hears a whistle, looks up at the falling crates (with a low shot tilted up at them), bolts while they land, slows, turns back and sees them; six camera set-ups plus a crane.
 - `render_episode.py` - renders the episode headless, burns the subtitle in and adds the synthesised sound cues (splat, whistles, thuds) with ffmpeg.
+- `build_office.py` - builds the "OfficeTest" scene: an office set, the worker and police officer cloned from Yellow, and the three-attempt robbery with rewinds.
+- `render_office_test.py` - renders OfficeTest and assembles it with the rewinds, subtitles, sound, and an optional music bed from `audio/ambient.*`.
 - `slimsico.blend` - the saved scene, including the props and all 561 frames of animation.
 - `renders/scene.png` - 1920x1080 EEVEE render of the empty set.
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
 - `renders/episode.mp4` - the rendered episode so far, 23.4 s at 1080p with subtitles and sound.
+- `renders/office_test.mp4` - the office robbery test scene with rewinds.
 - `CHANGELOG.md` - full history of changes.
 
 ## Rebuild
@@ -65,6 +68,12 @@ Episode video with subtitles and sound (needs ffmpeg on PATH):
 
 ```
 python render_episode.py
+```
+
+Office test scene (run `build_office.py` in Blender first):
+
+```
+python render_office_test.py
 ```
 
 Made with Blender 5.0.
