@@ -5,6 +5,7 @@ All notable changes to slimsico. Newest first. Dates are commit dates.
 ## 2026-09-06 - Draft 2, beat 2: the fall and the landing
 
 ### Changed
+- The tumble is a proper tumble: the body rotates about its centre of mass (not the rig origin at the feet), driven by an angular velocity that is mostly end-over-end but whose axis drifts and whose speed surges, so he flips, twists and slows instead of spinning like a propeller. The body animates through it: the spine arches and curls, arms windmill against the flip, legs kick, and every couple of seconds he tucks into a ball.
 - The fall now reads as a fall: he starts with some downward speed and accelerates under gravity, the roll speeds up as he drops, and the camera follows him all the way down so the plate rushes back into frame behind him. The lens widens back out as he nears. Motion blur is on for the render.
 
 ### Added

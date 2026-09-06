@@ -63,49 +63,87 @@ def key_quat(obj, frame, q, interp="LINEAR"):
 # then accelerates under gravity so the last second is fast. Lands at the
 # origin, belly first.
 TOP = Vector((14.0, 30.0, 165.0))
-LAND = Vector((0.0, 6.0, LIE_Z))
+BELLY_LAND = Vector((0.0, 6.0, LIE_Z))                     # where his belly hits the plate
+COM = Vector((0, 0, 4.2))                                  # centre of mass, in the rig's rest space
 fall_time = (F_LAND - F_START) / FPS
 V0 = 14.0                                                   # studs per second at frame 1
-G = 2 * (TOP.z - LAND.z - V0 * fall_time) / fall_time ** 2
+G = 2 * (TOP.z - BELLY_LAND.z - V0 * fall_time) / fall_time ** 2
 LANDING_ROT = Euler((math.radians(90), 0, 0)).to_quaternion()   # face down, head toward -Y
+ROOT_LAND = BELLY_LAND - LANDING_ROT @ COM                 # where the rig's origin ends up
 poser = Poser(rig)
+FLAT = {"upper_arm.L": (-0.9, -0.2, -0.3), "forearm.L": (-0.95, -0.1, -0.25),
+        "upper_arm.R": (0.9, -0.2, -0.3), "forearm.R": (0.95, -0.1, -0.25),
+        "thigh.L": (-0.05, 0, -1), "shin.L": (0, 0, -1), "thigh.R": (0.05, 0, -1), "shin.R": (0, 0, -1),
+        "spine.002": (0, 0, 1), "spine.003": (0, 0, 1), "head": (0, -0.15, 0.99)}
+
+
+def smooth_pulse(t, period, width, phase=0.0):
+    """0..1 bump that comes round every `period` seconds, `width` seconds wide."""
+    x = ((t + phase) % period) / width
+    return 0.0 if x >= 1.0 else math.sin(math.pi * x) ** 2
+
+
+# The body tumbles about its centre of mass. The angular velocity is mostly
+# end-over-end but its axis drifts and its speed surges, so he flips, twists
+# and slows rather than spinning like a propeller. Integrated frame by frame.
+q = Euler((0.6, 0.25, 0.7)).to_quaternion()
 for f in range(F_START, F_LAND + 1):
     t = (f - F_START) / FPS
     u = t / fall_time
     z = TOP.z - V0 * t - 0.5 * G * t * t
-    pos = Vector((TOP.x + (LAND.x - TOP.x) * u, TOP.y + (LAND.y - TOP.y) * u, max(z, LIE_Z)))
-    key(rig, f, loc=tuple(pos), interp="LINEAR")
-    # tumble: end over end, speeding up with the fall, with a lazy twist
-    roll = 0.10 * (f - F_START) + 0.0009 * (f - F_START) ** 2
-    tumble = Euler((roll, 0.3 * math.sin(roll * 0.5), 0.6 + 0.03 * (f - F_START))).to_quaternion()
+    com_world = Vector((TOP.x + (BELLY_LAND.x - TOP.x) * u, TOP.y + (BELLY_LAND.y - TOP.y) * u, max(z, LIE_Z)))
+    if f > F_START:
+        surge = 0.75 + 0.5 * math.sin(0.55 * t + 0.8) ** 2          # speeds up and eases
+        faster = 0.8 + 0.7 * u                                       # tumbles harder as he falls
+        w = Vector((2.4 + 0.8 * math.sin(0.6 * t + 0.3),             # flips (about his width)
+                    0.9 * math.sin(0.9 * t + 1.2),                   # cartwheel component
+                    1.1 * math.sin(0.45 * t) + 0.4)) * surge * faster  # twist
+        q = (Quaternion(w.normalized(), w.length / FPS) @ q).normalized()
     # the last 18 frames resolve the tumble into the belly-first landing
     blend = max(0.0, (f - (F_LAND - 18)) / 18)
-    q = tumble.slerp(LANDING_ROT, blend * blend * (3 - 2 * blend))
-    key_quat(rig, f, q)
-    # limbs flail loosely, each on its own rhythm, then spread for the splat
-    dirs = {}
-    for side, s, ph in (("L", -1, 0.0), ("R", 1, 1.9)):
-        a = 0.5 * math.sin(2.1 * t + ph)
-        dirs["upper_arm." + side] = (s * 0.75, 0.3 * math.cos(1.7 * t + ph), 0.55 + a)
-        dirs["forearm." + side] = (s * 0.5, 0.25 * math.sin(2.6 * t + ph), 0.8)
-        dirs["thigh." + side] = (s * 0.3, -0.35 + 0.3 * math.sin(1.5 * t + ph), -0.9)
-        dirs["shin." + side] = (s * 0.1, 0.45 * max(0.0, math.sin(1.5 * t + ph + 1.0)), -0.9)
+    q_out = q.slerp(LANDING_ROT, blend * blend * (3 - 2 * blend))
+    root = com_world - q_out @ COM
+    key(rig, f, loc=tuple(root), interp="LINEAR")
+    key_quat(rig, f, q_out)
+
+    # body animation: arms windmill against the flip, legs kick, the spine
+    # arches and curls, and now and then he tucks up into a ball
+    tuck = smooth_pulse(t, 2.6, 0.7, 0.9)
+    arch = 0.4 * math.sin(0.8 * t + 0.4)
+    dirs = {"spine.002": (0, arch * 0.6, 0.95), "spine.003": (0, arch, 0.92),
+            "head": (0.15 * math.sin(0.5 * t), -0.1 + 0.3 * math.sin(0.8 * t + 1.0), 0.95)}
+    for side, s, ph in (("L", -1, 0.0), ("R", 1, 2.4)):
+        a = 2.4 * t + ph
+        arm = Vector((s * 0.55, 0.85 * math.sin(a), 0.85 * math.cos(a)))
+        fore = Vector((s * 0.35, 0.85 * math.sin(a - 0.7), 0.85 * math.cos(a - 0.7)))
+        kick = math.sin(1.9 * t + ph * 0.7)
+        thigh = Vector((s * 0.15, -0.55 * kick, -0.85))
+        shin = Vector((s * 0.05, -0.55 * kick + 0.6 * max(0.0, math.sin(1.9 * t + ph * 0.7 + 0.6)), -0.85))
+        # the tuck pulls everything in
+        arm = arm.lerp(Vector((s * 0.45, -0.75, -0.2)), tuck)
+        fore = fore.lerp(Vector((s * 0.2, -0.5, 0.85)), tuck)
+        thigh = thigh.lerp(Vector((s * 0.12, -0.95, -0.3)), tuck)
+        shin = shin.lerp(Vector((s * 0.05, 0.25, -0.95)), tuck)
+        dirs["upper_arm." + side] = tuple(arm)
+        dirs["forearm." + side] = tuple(fore)
+        dirs["thigh." + side] = tuple(thigh)
+        dirs["shin." + side] = tuple(shin)
+    if tuck > 0:
+        dirs["spine.003"] = tuple(Vector(dirs["spine.003"]).lerp(Vector((0, -0.55, 0.83)), tuck))
+        dirs["head"] = tuple(Vector(dirs["head"]).lerp(Vector((0, -0.6, 0.8)), tuck))
     if blend > 0:
-        flat = {"upper_arm.L": (-0.9, -0.2, -0.3), "forearm.L": (-0.95, -0.1, -0.25),
-                "upper_arm.R": (0.9, -0.2, -0.3), "forearm.R": (0.95, -0.1, -0.25),
-                "thigh.L": (-0.05, 0, -1), "shin.L": (0, 0, -1), "thigh.R": (0.05, 0, -1), "shin.R": (0, 0, -1)}
-        for k in flat:
-            dirs[k] = tuple(Vector(dirs[k]).lerp(Vector(flat[k]), blend))
-    dirs["head"] = (0, -0.15, 0.99)
+        for k in FLAT:
+            dirs[k] = tuple(Vector(dirs[k]).lerp(Vector(FLAT[k]), blend))
     poser.pose(f, dirs)
 
 # ------------------------------------------------------------ the landing
+RX, RY = ROOT_LAND.x, ROOT_LAND.y
 key(rig, F_LAND, scale=(1, 1, 1))
-key(rig, F_LAND + 2, loc=(LAND.x, LAND.y, LIE_Z - 0.15), scale=(1.2, 0.7, 1.12))          # splat
-key(rig, F_LAND + 7, loc=(LAND.x, LAND.y - 0.5, LIE_Z + 1.0), scale=(0.94, 1.12, 0.96))    # small bounce
-key(rig, F_LAND + 12, loc=(LAND.x, LAND.y - 1.0, LIE_Z), scale=(1.08, 0.86, 1.03))
-key(rig, F_LAND + 20, loc=(LAND.x, LAND.y - 1.4, LIE_Z), scale=(1, 1, 1))
-key(rig, F_END, loc=(LAND.x, LAND.y - 1.4, LIE_Z), scale=(1, 1, 1))
+key(rig, F_LAND + 2, loc=(RX, RY, LIE_Z - 0.15), scale=(1.2, 0.7, 1.12))          # splat
+key(rig, F_LAND + 7, loc=(RX, RY - 0.5, LIE_Z + 1.0), scale=(0.94, 1.12, 0.96))    # small bounce
+key(rig, F_LAND + 12, loc=(RX, RY - 1.0, LIE_Z), scale=(1.08, 0.86, 1.03))
+key(rig, F_LAND + 20, loc=(RX, RY - 1.4, LIE_Z), scale=(1, 1, 1))
+key(rig, F_END, loc=(RX, RY - 1.4, LIE_Z), scale=(1, 1, 1))
 key_quat(rig, F_LAND + 20, LANDING_ROT, "BEZIER")
 key_quat(rig, F_END, LANDING_ROT, "BEZIER")
 poser.pose(F_LAND + 20, {"upper_arm.L": (-0.9, -0.2, -0.3), "forearm.L": (-0.95, -0.1, -0.25),
