@@ -22,7 +22,10 @@ crate1 = bpy.data.objects["Crate1"]
 crate2 = bpy.data.objects["Crate2"]
 
 FPS = 24
-F_HANDS, F_LOOK, F_WIDE, F_WALK, F_CRATES, F_END = 151, 201, 241, 291, 381, 450
+F_HANDS, F_LOOK, F_WIDE, F_WALK, F_CRATES = 151, 201, 241, 291, 381
+F_CRANE, F_RUN, F_END = 450, 478, 546          # camera rises, then he runs
+RUN_SPEED = 0.42                               # studs per frame
+RUN_STRIDE = 14                                # frames per run cycle
 SUB_START, SUB_END = 250, 288          # "Where am I?" (render_episode.py reads these)
 STAND = (0, -2.0, 0.0)                 # where the opening leaves him
 WALK_SPEED = 0.16                      # studs per frame
@@ -68,21 +71,24 @@ REST = poser.rest
 # ------------------------------------------------------------ 1. hands (front 3/4)
 key(rig, F_HANDS, loc=STAND, rot=(0, 0, 0), scale=(1, 1, 1))
 poser.pose(F_HANDS, {})
-poser.pose(F_HANDS + 14, sym(arm=(-0.35, -0.72, -0.6), fore=(-0.1, -0.35, 0.93),
-                             **{"head": (0, -0.82, 0.57), "neck": (0, -0.3, 0.95)}))
-poser.pose(F_HANDS + 30, sym(arm=(-0.38, -0.7, -0.62), fore=(-0.05, -0.4, 0.92),
-                             **{"head": (0, -0.84, 0.55), "neck": (0, -0.3, 0.95)}))    # turns them over a touch
-poser.pose(F_LOOK - 1, sym(arm=(-0.42, -0.55, -0.72), fore=(-0.2, -0.45, 0.87),
-                           **{"head": (0, -0.35, 0.94)}))
+# Head moves are kept few and slow: one look down at the hands, one look
+# left, one look right, one return to centre.
+HEAD_DOWN = {"head": (0, -0.82, 0.57), "neck": (0, -0.3, 0.95)}
+HEAD_LEFT = {"head": (-0.55, -0.3, 0.78), "neck": (-0.15, -0.05, 0.99)}
+HEAD_RIGHT = {"head": (0.55, -0.3, 0.78), "neck": (0.15, -0.05, 0.99)}
+poser.pose(F_HANDS + 14, sym(arm=(-0.35, -0.72, -0.6), fore=(-0.1, -0.35, 0.93), **HEAD_DOWN))
+poser.pose(F_HANDS + 30, sym(arm=(-0.38, -0.7, -0.62), fore=(-0.05, -0.4, 0.92), **HEAD_DOWN))   # turns them over
+poser.pose(F_LOOK - 1, sym(arm=(-0.42, -0.55, -0.72), fore=(-0.2, -0.45, 0.87), **HEAD_DOWN))
 
 # ------------------------------------------------------------ 2. looks around (close-up)
-poser.pose(F_LOOK + 6, sym(arm=(-0.45, -0.3, -0.85), fore=(-0.4, -0.35, -0.85), **{"head": (0, -0.2, 0.98)}))
-poser.pose(F_LOOK + 16, {"head": (-0.55, -0.3, 0.78), "neck": (-0.15, -0.05, 0.99)})     # left
-poser.pose(F_LOOK + 30, {"head": (0.55, -0.3, 0.78), "neck": (0.15, -0.05, 0.99)})      # right
+poser.pose(F_LOOK + 8, sym(arm=(-0.45, -0.3, -0.85), fore=(-0.4, -0.35, -0.85), **{"head": (0, -0.2, 0.98)}))
+poser.pose(F_LOOK + 20, HEAD_LEFT)
+poser.pose(F_LOOK + 26, HEAD_LEFT)                                                       # holds the look
+poser.pose(F_WIDE - 1, HEAD_RIGHT)
 
 # ------------------------------------------------------------ 3. wide: "Where am I?"
-poser.pose(F_WIDE + 8, {"head": (0.2, -0.3, 0.93)})
-poser.pose(F_WIDE + 24, {"head": (-0.25, -0.4, 0.88)})                                    # glances down-left
+poser.pose(F_WIDE + 12, HEAD_RIGHT)                                                      # holds
+poser.pose(F_WIDE + 34, {"head": (0, -0.2, 0.98)})                                        # back to centre, slowly
 poser.pose(F_WALK - 1, {"head": (0, -0.2, 0.98)})
 
 # ------------------------------------------------------------ 4. the walk (side tracking)
@@ -105,21 +111,46 @@ for f in range(F_WALK, F_CRATES):
         ax = -0.4 if side == "L" else 0.4
         dirs["upper_arm." + side] = (ax, arm, -0.88)
         dirs["forearm." + side] = (ax * 0.9, arm - 0.2 * amp, -0.85)
-    dirs["head"] = (0.12 * math.sin(phase / 2) * amp, -0.2, 0.97)
+    dirs["head"] = (0, -0.2, 0.98)                       # steady; no bobbing head
     poser.pose(f, dirs)
     # keep the root moving forward at a steady pace
     key(rig, f, loc=(0, STAND[1] - WALK_SPEED * t, 0), interp="LINEAR")
 ground_clamp(rig, body, range(F_WALK, F_CRATES + 4))
 
 # ------------------------------------------------------------ 5. the crates
-poser.pose(F_CRATES, {})
+poser.pose(F_CRATES, {"head": (0, -0.2, 0.98)})
 poser.pose(F_CRATES + 20, {"head": (0, -0.55, 0.83), "neck": (0, -0.15, 0.99)})           # hears them, looks up
 poser.pose(F_CRATES + 36, sym(arm=(-0.75, -0.3, 0.55), fore=(-0.6, -0.3, 0.75),
                               **{"head": (0, 0.12, 0.99), "spine.003": (0, 0.12, 0.99)}))   # flinch as crate 1 lands
-poser.pose(F_CRATES + 52, sym(arm=(-0.5, -0.25, -0.82), fore=(-0.45, -0.3, -0.83),
-                              **{"head": (-0.5, -0.35, 0.8), "neck": (-0.15, -0.05, 0.99)}))   # looks at crate 1
-poser.pose(F_CRATES + 63, {"head": (0.5, -0.35, 0.8), "neck": (0.15, -0.05, 0.99)})     # then crate 2
-poser.pose(F_END, {"head": (0.45, -0.4, 0.8), "neck": (0.15, -0.05, 0.99)})
+poser.pose(F_CRATES + 52, sym(arm=(-0.5, -0.25, -0.82), fore=(-0.45, -0.3, -0.83), **HEAD_LEFT))   # sees crate 1
+poser.pose(F_CRANE + 16, HEAD_RIGHT)                                                    # then crate 2, holds
+poser.pose(F_RUN - 6, {"head": (0, -0.3, 0.95)})                                          # eyes front
+
+# ------------------------------------------------------------ 6. he runs
+# he spins round and bolts back the way he came, away from the camera
+key(rig, F_RUN - 6, loc=(0, WALK_END_Y, 0), rot=(0, 0, 0))
+key(rig, F_RUN + 4, rot=(math.radians(12), 0, math.pi))                                  # turned, leaning into it
+for f in range(F_RUN, F_END + 1):
+    t = f - F_RUN
+    phase = 2 * math.pi * t / RUN_STRIDE
+    amp = min(1.0, t / 8)
+    dirs = {}
+    for side, ph in (("L", phase), ("R", phase + math.pi)):
+        swing = 0.65 * math.sin(ph) * amp
+        bend = 0.85 * max(0.0, math.cos(ph)) * amp
+        sx = -0.03 if side == "L" else 0.03
+        dirs["thigh." + side] = (sx, -swing, -1.0)
+        dirs["shin." + side] = (sx, -swing + bend, -1.0)
+        pump = 0.45 * math.sin(ph) * amp
+        ax = -0.35 if side == "L" else 0.35
+        dirs["upper_arm." + side] = (ax, pump, -0.8)                     # elbows swing
+        dirs["forearm." + side] = (ax * 0.8, -0.85 + pump * 0.4, -0.15)  # forearms held forward
+    dirs["head"] = (0, -0.3, 0.95)
+    dirs["spine.003"] = (0, -0.1, 0.99)
+    poser.pose(f, dirs)
+    run_t = max(0, t - 4)                                # starts moving once the turn is done
+    key(rig, f, loc=(0, WALK_END_Y + RUN_SPEED * run_t, 0), interp="LINEAR")
+ground_clamp(rig, body, range(F_RUN, F_END + 1))
 
 DROP_FROM, FALL = 30.0, 30      # start height and frames of fall: in frame for the last half second
 
@@ -151,11 +182,15 @@ SHOTS = [
     (F_HANDS, F_LOOK - 1, (-6.0, -12.0, 8.8), (-5.4, -11.0, 8.6)),          # front 3/4 from above his eyeline, slow push in
     (F_LOOK, F_WIDE - 1, (-2.5, -8.5, 6.6), (-2.1, -8.0, 6.8)),             # close-up, low
     (F_WIDE, F_WALK - 1, (10.0, 8.0, 9.0), (9.0, 7.0, 8.5)),                # wide, from behind-right
-    (F_CRATES, F_END, (-3.0, -44.0, 10.0), (-2.5, -43.0, 9.6)),             # wide front, sky above him
+    (F_CRATES, F_CRANE - 1, (-3.0, -44.0, 10.0), (-2.5, -43.0, 9.6)),       # wide front, sky above him
 ]
 for start, end, a, b in SHOTS:
     key(cam, start, loc=a, interp="LINEAR")
     key(cam, end, loc=b, interp="LINEAR")
+# the crane: from the crate shot the camera rises high and holds there for the run
+key(cam, F_CRANE, loc=(-2.5, -43.0, 9.6))
+key(cam, F_RUN, loc=(-3.0, -48.0, 30.0))
+key(cam, F_END, loc=(-3.0, -50.0, 32.0))
 for f in range(F_WALK, F_CRATES):                                           # side tracking shot, full body
     key(cam, f, loc=(-19.0, STAND[1] - WALK_SPEED * (f - F_WALK) - 1.0, 4.5), interp="LINEAR")
 

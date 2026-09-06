@@ -35,12 +35,12 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `rig_utils.py` - shared helpers for the animation scripts: keying with explicit interpolation, a parent-aware bone aimer, and a ground clamp that keeps the body's lowest point on the floor.
 - `build_opening.py` - run inside Blender after the character exists: names the rig's bones and keys the opening shot (fall from the sky, belly-flop, get up) with a tracking camera, frames 1-150.
 - `build_props.py` - two detailed wooden crates (slats, posts, braces, iron brackets, bolts), one open-topped with a bundle of logs.
-- `build_continue.py` - frames 151-450: he looks at his hands, looks around ("Where am I?"), walks, and the crates drop in beside him; five camera set-ups.
-- `render_episode.py` - renders frames 1-450 headless and burns the subtitle in with ffmpeg.
-- `slimsico.blend` - the saved scene, including the props and all 450 frames of animation.
+- `build_continue.py` - frames 151-546: he looks at his hands, looks around ("Where am I?"), walks, the crates drop in beside him, the camera cranes up and he runs; five camera set-ups plus the crane.
+- `render_episode.py` - renders frames 1-546 headless and burns the subtitle in with ffmpeg.
+- `slimsico.blend` - the saved scene, including the props and all 546 frames of animation.
 - `renders/scene.png` - 1920x1080 EEVEE render of the empty set.
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
-- `renders/episode.mp4` - the rendered episode so far, 18.75 s at 1080p with subtitles.
+- `renders/episode.mp4` - the rendered episode so far, 22.75 s at 1080p with subtitles.
 - `CHANGELOG.md` - full history of changes.
 
 ## Rebuild
