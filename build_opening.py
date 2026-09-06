@@ -1,6 +1,6 @@
 """Opening shot: Yellow drops out of the sky, belly-flops onto the grid, lies
 there a moment, pushes himself up onto hands and knees, tucks his feet under
-into a crouch, and stands with a relieved hop. The camera falls alongside
+into a crouch, and stands. The camera falls alongside
 him, settles at ground level for the landing, then eases back a little as he
 gets up.
 
@@ -21,7 +21,7 @@ cam = bpy.data.objects["Camera"]
 
 FPS = 24
 F_START, F_LAND, F_SETTLE, F_RISE = 1, 46, 60, 84
-F_PUSH, F_CROUCH, F_UP, F_END = 100, 114, 128, 160
+F_PUSH, F_CROUCH, F_UP, F_END = 100, 114, 128, 150
 DROP_Z = 72.0            # where he appears in the sky
 LIE_Z = 0.95             # root height when flat on his belly (half the belly depth)
 R90 = math.radians(90)
@@ -127,11 +127,7 @@ key(rig, F_PUSH, loc=(0, -0.6, 2.1), rot=(R90, 0, 0))                        # h
 key(rig, F_CROUCH, loc=(0, -1.6, 0.15), rot=(math.radians(38), 0, 0))         # crouched on his feet
 key(rig, F_UP - 4, loc=(0, -2.0, 0.0), rot=(math.radians(-6), 0, 0))          # overshoots upright
 key(rig, F_UP, loc=(0, -2.0, 0.0), rot=(0, 0, 0))
-# a relieved little hop, then he settles on his feet
-key(rig, F_UP + 6, scale=(1.05, 1.05, 0.92))
-key(rig, F_UP + 12, loc=(0, -2.0, 0.8), scale=(0.96, 0.96, 1.06))
-key(rig, F_UP + 18, loc=(0, -2.0, 0.0), scale=(1.04, 1.04, 0.95))
-key(rig, F_UP + 24, rot=(0, 0, 0), scale=(1, 1, 1))
+# then he settles on his feet
 key(rig, F_END, loc=(0, -2.0, 0.0), rot=(0, 0, 0), scale=(1, 1, 1))
 
 # ------------------------------------------------------------ bone poses
@@ -199,8 +195,7 @@ POSES = {
                   thigh=(-0.08, -0.75, -0.65), shin=(0, 0.55, -0.83),
                   **{"head": (0, -0.3, 0.95)}),
     F_UP:     sym(arm=(-0.5, -0.2, -0.85), fore=(-0.45, -0.25, -0.85)),
-    F_UP + 12: sym(arm=(-0.6, -0.1, -0.6), fore=(-0.6, -0.15, -0.65)),      # lift on the hop
-    F_UP + 24: {},                                                            # everything back to rest
+    F_UP + 16: {},                                                            # everything back to rest
     F_END:    {},
 }
 for frame in sorted(POSES):
