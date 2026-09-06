@@ -38,7 +38,6 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
 - `renders/opening.mp4` - the rendered opening shot (1080p, H.264).
 - `CHANGELOG.md` - full history of changes.
-- `STORY.md` - the mini introduction and premise for Yellow, matching the opening shot.
 
 ## Rebuild
 
