@@ -209,15 +209,16 @@ key(rig, F_STAND, loc=(RX, LIE_Y - 1.4, 0.0))
 key_rot(F_STAND, 0.0)
 STAND_Y = LIE_Y - 1.4
 
-# the rub: the right hand reaches across to grip his left upper arm and rubs
-# up and down it three times, while he looks down at it
-LOOK_ARM = {"head": (-0.32, -0.66, 0.68), "neck": (-0.08, -0.2, 0.98), "spine.003": (0, -0.12, 0.99)}
-ARM_L = {"upper_arm.L": (-0.4, -0.18, -0.9), "forearm.L": (-0.33, -0.32, -0.89)}
+# the rub: the right arm reaches right across the chest so the hand lands on
+# the left upper arm, then slides up and down it three times while he looks
+# down at it. The left arm hangs a little forward to meet the hand.
+LOOK_ARM = {"head": (-0.42, -0.58, 0.7), "neck": (-0.1, -0.2, 0.97), "spine.003": (-0.1, -0.12, 0.99)}
+ARM_L = {"upper_arm.L": (-0.3, -0.35, -0.88), "forearm.L": (-0.25, -0.4, -0.88)}
 
 
 def rub_pose(slide):
-    return {**ARM_L, "upper_arm.R": (0.18, -0.62, -0.76),
-            "forearm.R": (-0.9 - 0.06 * slide, -0.28, 0.32 + 0.3 * slide), **LOOK_ARM}
+    return {**ARM_L, "upper_arm.R": (-0.86, -0.34, -0.36 + 0.06 * slide),
+            "forearm.R": (-0.88, -0.3, -0.34 - 0.32 * slide), **LOOK_ARM}
 
 
 poser.pose(F_RUB, rub_pose(0.0))
