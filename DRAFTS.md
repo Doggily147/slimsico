@@ -45,3 +45,4 @@ Working scripts at the repo root: `build_draft2.py`, `render_draft2.py`. Uses th
 Beats so far:
 
 1. The baseplate, peaceful. A sound from above. The camera tilts up and finds Yellow far up in the sky, rolling as he falls.
+2. The fall accelerates, the camera follows him down to the plate, and he belly-flops with a squash, a bounce and a slide, then lies still.

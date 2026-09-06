@@ -19,12 +19,14 @@ MUSIC = next((p for p in (os.path.join(ROOT, "audio", "ambient" + ext) for ext i
 FPS = 24
 
 # frames match build_draft2.py
-F_END = 150
+F_END = 240
 SUBTITLES = []
-SOUND_CUES = [("wind", 1), ("whistle", 60)]
+SOUND_CUES = [("wind", 1), ("whistle", 60), ("splat", 190)]
 SOUNDS = {
     # a long, faint whistle from far above that slides down and grows as he nears
-    "whistle": ("0.16*sin(2*PI*(1700-450*t/6)*t)*min(1\\,t/2.5)*(0.35+0.65*t/6)", 6.0),
+    "whistle": ("0.2*sin(2*PI*(1700-600*t/5.4)*t)*min(1\\,t/2.5)*(0.3+0.7*t/5.4)", 5.4),
+    # the belly-flop: a slap of noise with a soft body thump
+    "splat": ("0.85*exp(-t*20)*(random(0)-0.5)+0.5*exp(-t*8)*sin(2*PI*70*t)", 0.7),
 }
 NOISE_BEDS = {
     # soft wind: pink noise, low-passed, gently breathing

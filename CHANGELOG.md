@@ -2,6 +2,14 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-06 - Draft 2, beat 2: the fall and the landing
+
+### Changed
+- The fall now reads as a fall: he starts with some downward speed and accelerates under gravity, the roll speeds up as he drops, and the camera follows him all the way down so the plate rushes back into frame behind him. The lens widens back out as he nears. Motion blur is on for the render.
+
+### Added
+- The landing: the tumble resolves into a belly-first hit at frame 190 with a squash, a small bounce and a slide, a camera shake on impact, and a splat in the sound mix. The whistle now runs right up to the impact. The beat ends at frame 240 with him lying still.
+
 ## 2026-09-06 - Draft 2, beat 1: a sound from above
 
 ### Added
