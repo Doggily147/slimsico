@@ -287,31 +287,87 @@ for s in (-1, 1):
     for k in range(6):
         box("Mat%s%d" % ("L" if s < 0 else "R", k), (0.9, 0.55, 0.05), (s * 1.75, -1.0 + k * 1.05, 2.42), MAT, bevel=0.015, segments=1)
 
-# ------------------------------------------------------------ console: pod, display, windshield, bars
-loft("Pod", [(-3.8, 0.3, 0.1, 0.1, 4.0), (-3.3, 0.85, 0.4, 0.35, 4.1), (-2.7, 1.0, 0.5, 0.4, 4.15),
-             (-2.1, 0.85, 0.38, 0.35, 4.1), (-1.85, 0.35, 0.12, 0.12, 4.02)], BLACK, p=3.4, crease_amount=0.5)
-# console, front to back: windshield, then the display angled up at the
-# rider, then the handlebars, all above the pod
-box("Windshield", (2.1, 0.05, 0.95), (0, -3.95, 4.72), GLASS, rot=(math.radians(-42), 0, 0), bevel=0.02, segments=1)
-box("ShieldFrame", (2.2, 0.08, 0.1), (0, -4.27, 5.08), CHROME, rot=(math.radians(-42), 0, 0))
-box("MonitorBezel", (1.7, 0.16, 1.0), (0, -3.2, 4.85), BLACK, rot=(math.radians(-35), 0, 0), bevel=0.04, segments=2)
-box("Monitor", (1.5, 0.06, 0.82), (0, -3.12, 4.86), SCREEN, rot=(math.radians(-35), 0, 0))
+# ------------------------------------------------------------ the dash: one housing out of the hood
+# A dash housing rises out of the hood with a flat shelf. Set into the front
+# of the shelf is a hologram projector: a chrome ring with a purple emitter
+# disc, a faint light cone, and a slowly turning holographic globe above it.
+# Behind and above the hologram a screen block rises from the shelf, its face
+# angled up at the rider. The handlebar stem is anchored into the back of the
+# shelf, the windshield frame sits on the front lip, and the mirrors hang off
+# short arms bolted to the housing sides. Nothing floats.
+DASH = [
+    (-4.5, 0.45, 0.12, 0.5, 3.7),
+    (-4.1, 1.15, 0.42, 0.7, 3.85),
+    (-3.4, 1.4, 0.5, 0.8, 3.9),
+    (-2.5, 1.4, 0.5, 0.8, 3.9),
+    (-1.95, 1.0, 0.35, 0.7, 3.85),
+    (-1.72, 0.45, 0.12, 0.5, 3.8),
+]
+loft("Dash", DASH, BLACK, p=3.6, crease_amount=0.7)
+SHELF = 4.38                                                  # top of the dash housing
+# hologram projector
+tube("HoloRing", 0.44, 0.1, 0.1, (0, -3.55, SHELF), CHROME, verts=40)
+cylinder("HoloDisc", 0.36, 0.05, (0, -3.55, SHELF + 0.01), VIOLET, verts=40)
+cone_mesh = bpy.data.meshes.new("Hovercraft_HoloCone")
+cb = bmesh.new()
+bmesh.ops.create_cone(cb, cap_ends=False, segments=32, radius1=0.34, radius2=0.42, depth=0.5)
+cb.to_mesh(cone_mesh)
+cb.free()
+cone_mesh.shade_smooth()
+cone = bpy.data.objects.new("Hovercraft_HoloCone", cone_mesh)
+cone.location = (0, -3.55, SHELF + 0.28)
+cone.data.materials.append(VIOLET_SOFT)
+scene.collection.objects.link(cone)
+attach(cone)
+# the hologram itself: a wireframe globe with a bright core, slowly turning
+bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=0.3, location=(0, -3.55, SHELF + 0.6))
+holo = bpy.context.object
+holo.name = "Hovercraft_Hologram"
+holo.data.materials.append(VIOLET_STRIP)
+wf = holo.modifiers.new("Wire", "WIREFRAME")
+wf.thickness = 0.018
+attach(holo)
+holo.animation_data_clear()
+holo.rotation_euler = (0.3, 0, 0)
+holo.keyframe_insert("rotation_euler", frame=scene.frame_start)
+holo.rotation_euler = (0.3, 0, 2 * math.pi * (scene.frame_end - scene.frame_start) / 96.0)
+holo.keyframe_insert("rotation_euler", frame=scene.frame_end)
+for fc in holo.animation_data.action.layers[0].strips[0].channelbag(holo.animation_data.action_slot).fcurves:
+    for kp in fc.keyframe_points:
+        kp.interpolation = "LINEAR"
+bpy.ops.mesh.primitive_uv_sphere_add(radius=0.08, segments=16, ring_count=8, location=(0, -3.55, SHELF + 0.6))
+core = bpy.context.object
+core.name = "Hovercraft_HoloCore"
+core.data.materials.append(VIOLET)
+bpy.ops.object.shade_smooth()
+attach(core)
+# the screen block, rising from the shelf, face angled up at the rider
+box("ScreenBlock", (1.7, 0.55, 1.0), (0, -2.55, SHELF + 0.38), BLACK, rot=(math.radians(28), 0, 0), bevel=0.05, segments=3)
+box("Screen", (1.45, 0.03, 0.76), (0, -2.55 + 0.29, SHELF + 0.4), SCREEN, rot=(math.radians(28), 0, 0))
 for i in range(3):                                                    # readout bars on the screen
-    box("Readout%d" % i, (0.35 + 0.25 * i, 0.02, 0.06), (-0.45 + 0.06 * i, -3.085 + 0.1 * i, 5.12 - i * 0.2), VIOLET_STRIP,
-        rot=(math.radians(-35), 0, 0))
-cylinder("BarStem", 0.13, 0.9, (0, -2.55, 4.45), DARK, rot=(math.radians(-25), 0, 0), verts=14)
-cylinder("BarCross", 0.1, 3.4, (0, -2.35, 4.85), DARK, rot=(0, math.radians(90), 0), verts=14)
-cylinder("BarClamp", 0.18, 0.5, (0, -2.35, 4.85), CHROME, rot=(0, math.radians(90), 0), verts=14)
+    box("Readout%d" % i, (0.3 + 0.28 * i, 0.02, 0.06), (-0.5 + 0.05 * i, -2.55 + 0.305 - 0.09 * i, SHELF + 0.62 - i * 0.17), VIOLET_STRIP,
+        rot=(math.radians(28), 0, 0))
+# handlebars anchored into the back of the shelf
+cylinder("BarStem", 0.14, 0.75, (0, -1.98, SHELF + 0.25), DARK, rot=(math.radians(-22), 0, 0), verts=14)
+cylinder("StemBase", 0.24, 0.12, (0, -2.08, SHELF + 0.02), CHROME, verts=20)
+cylinder("BarCross", 0.1, 3.4, (0, -1.85, SHELF + 0.62), DARK, rot=(0, math.radians(90), 0), verts=14)
+cylinder("BarClamp", 0.18, 0.5, (0, -1.85, SHELF + 0.62), CHROME, rot=(0, math.radians(90), 0), verts=14)
 for s in (-1, 1):
     side = "L" if s < 0 else "R"
-    cylinder("Grip" + side, 0.15, 0.9, (s * 1.35, -2.35, 4.85), GRIP, rot=(0, math.radians(90), 0), verts=14)
-    cylinder("Lever" + side, 0.05, 0.9, (s * 1.3, -2.7, 4.75), DARK, rot=(0, math.radians(90), 0), verts=8)
-    box("Mirror" + side, (0.5, 0.3, 0.34), (s * 1.85, -3.5, 3.85), BLACK, bevel=0.06, segments=2)
-    box("MirrorGlass" + side, (0.36, 0.03, 0.22), (s * 1.85, -3.34, 3.87), CHROME)
+    cylinder("Grip" + side, 0.15, 0.9, (s * 1.35, -1.85, SHELF + 0.62), GRIP, rot=(0, math.radians(90), 0), verts=14)
+    cylinder("Lever" + side, 0.05, 0.9, (s * 1.3, -2.2, SHELF + 0.52), DARK, rot=(0, math.radians(90), 0), verts=8)
+    # mirrors on short arms bolted to the housing sides
+    cylinder("MirrorArm" + side, 0.06, 1.1, (s * 1.55, -3.3, SHELF - 0.25), DARK, rot=(0, math.radians(90), 0), verts=8)
+    box("Mirror" + side, (0.5, 0.3, 0.34), (s * 2.05, -3.3, SHELF - 0.25), BLACK, bevel=0.06, segments=2)
+    box("MirrorGlass" + side, (0.36, 0.03, 0.22), (s * 2.05, -3.14, SHELF - 0.23), CHROME)
     # angular intake vents on the hood sides
     for k in range(3):
         box("Vent%s%d" % (side, k), (0.55, 0.12, 0.06), (s * 2.1, -4.6 + k * 0.32, 3.05 + k * 0.06), RUBBER,
             rot=(0, math.radians(-12 * s), 0))
+# windshield: its frame sits on the front lip of the housing
+box("ShieldBase", (2.3, 0.14, 0.1), (0, -4.15, SHELF - 0.02), CHROME)
+box("Windshield", (2.2, 0.05, 1.0), (0, -4.15 + 0.31, SHELF + 0.4), GLASS, rot=(math.radians(-38), 0, 0), bevel=0.02, segments=1)
+box("ShieldFrame", (2.3, 0.08, 0.1), (0, -4.15 + 0.62, SHELF + 0.79), CHROME, rot=(math.radians(-38), 0, 0))
 
 
 def hull_strip(name, y_from, y_to, dz, height, mat):
