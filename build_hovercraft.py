@@ -359,14 +359,14 @@ attach(core)
 # the screen: a tall upright panel rising from the shelf behind the hologram,
 # facing the rider, with live readouts
 SCREEN_Y = -2.6
-box("ScreenBlock", (1.25, 0.32, 1.7), (0, SCREEN_Y, SHELF + 0.72), BLACK, bevel=0.05, segments=3)
-box("ScreenPanel", (1.05, 0.03, 1.5), (0, SCREEN_Y + 0.165, SHELF + 0.74), SCREEN)
-box("ScreenHeader", (0.9, 0.02, 0.08), (0, SCREEN_Y + 0.185, SHELF + 1.38), VIOLET_STRIP)
+box("ScreenBlock", (1.25, 0.32, 2.35), (0, SCREEN_Y, SHELF + 1.15), BLACK, bevel=0.05, segments=3)      # rises from the shelf, panel clear of the bars
+box("ScreenPanel", (1.05, 0.03, 1.5), (0, SCREEN_Y + 0.165, SHELF + 1.47), SCREEN)
+box("ScreenHeader", (0.9, 0.02, 0.08), (0, SCREEN_Y + 0.185, SHELF + 2.11), VIOLET_STRIP)
 readouts = []
 for i in range(5):                                                    # five bars that rise and fall
-    readouts.append(box("Readout%d" % i, (0.5, 0.02, 0.09), (-0.2, SCREEN_Y + 0.185, SHELF + 1.18 - i * 0.16), VIOLET_STRIP))
-scan = box("ScanLine", (0.95, 0.02, 0.03), (0, SCREEN_Y + 0.19, SHELF + 0.74), NEON)
-ring_glyph = tube("ScreenRing", 0.16, 0.02, 0.03, (0.3, SCREEN_Y + 0.185, SHELF + 0.2), VIOLET_STRIP, rot=(math.radians(90), 0, 0), verts=24)
+    readouts.append(box("Readout%d" % i, (0.5, 0.02, 0.09), (-0.2, SCREEN_Y + 0.185, SHELF + 1.91 - i * 0.16), VIOLET_STRIP))
+scan = box("ScanLine", (0.95, 0.02, 0.03), (0, SCREEN_Y + 0.19, SHELF + 1.47), NEON)
+ring_glyph = tube("ScreenRing", 0.16, 0.02, 0.03, (0.3, SCREEN_Y + 0.185, SHELF + 0.93), VIOLET_STRIP, rot=(math.radians(90), 0, 0), verts=24)
 # reactive: bars breathe at different rates, the scan line sweeps, the panel pulses
 panel_bsdf = SCREEN.node_tree.nodes["Principled BSDF"]
 for f in range(scene.frame_start, scene.frame_end + 1, 2):
@@ -379,7 +379,7 @@ for f in range(scene.frame_start, scene.frame_end + 1, 2):
         bar.keyframe_insert("scale", index=0, frame=f)
         bar.keyframe_insert("location", index=0, frame=f)
     sweep = (t / 1.8) % 1.0
-    scan.location.z = SHELF + 0.05 + 1.38 * (sweep if int(t / 1.8) % 2 == 0 else 1.0 - sweep)
+    scan.location.z = SHELF + 0.78 + 1.38 * (sweep if int(t / 1.8) % 2 == 0 else 1.0 - sweep)
     scan.keyframe_insert("location", index=2, frame=f)
     ring_glyph.rotation_euler.y = 2 * math.pi * t / 2.5
     ring_glyph.keyframe_insert("rotation_euler", index=1, frame=f)
@@ -389,8 +389,8 @@ scene.frame_set(scene.frame_start)
 # handlebars anchored into the back of the shelf: a chamfered stem and yoke
 # with winged grips angled out and forward, lit tips and a lit slot
 cylinder("StemBase", 0.26, 0.12, (0, -2.08, SHELF + 0.02), CHROME, verts=8)
-box("BarStem", (0.26, 0.26, 0.8), (0, -2.0, SHELF + 0.36), DARK, rot=(math.radians(-22), 0, 0), bevel=0.05, segments=2)
-BAR_Z = SHELF + 0.74
+box("BarStem", (0.26, 0.26, 0.5), (0, -2.03, SHELF + 0.22), DARK, rot=(math.radians(-22), 0, 0), bevel=0.05, segments=2)
+BAR_Z = SHELF + 0.44
 box("Yoke", (1.1, 0.55, 0.32), (0, -1.86, BAR_Z), BLACK, bevel=0.07, segments=3)
 box("YokeSlot", (0.7, 0.04, 0.08), (0, -2.14, BAR_Z + 0.02), VIOLET_STRIP)
 box("YokeCap", (0.5, 0.35, 0.06), (0, -1.86, BAR_Z + 0.19), CHROME, bevel=0.02, segments=1)
