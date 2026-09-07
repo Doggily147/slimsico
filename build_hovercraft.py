@@ -394,9 +394,13 @@ mix = nt.nodes.new("ShaderNodeMixShader")
 tex = nt.nodes.new("ShaderNodeTexImage")
 first = os.path.join(HUD_DIR, "hud_0001.png")
 hud_img = bpy.data.images.get("hud_0001.png") or bpy.data.images.load(first)
+hud_img.filepath = first
 hud_img.source = "SEQUENCE"
+hud_img.reload()
 tex.image = hud_img
-tex.image_user.frame_duration = 72
+# the sequence length is however many frames make_hud.py wrote (72 for the
+# idle loop; a story script can point HUD_DIR at its own longer sequence)
+tex.image_user.frame_duration = len([f for f in os.listdir(HUD_DIR) if f.startswith("hud_") and f.endswith(".png")])
 tex.image_user.frame_start = 1
 tex.image_user.use_cyclic = True
 tex.image_user.use_auto_refresh = True
