@@ -66,6 +66,7 @@ GLASS = material("Glass", (0.25, 0.2, 0.35), rough=0.05, emit=((0.35, 0.25, 0.5)
 SCREEN = material("Screen", (0.03, 0.02, 0.06), rough=0.25, emit=((0.55, 0.3, 1.0), 1.6))
 VIOLET = material("HoverLight", (0.7, 0.3, 1.0), rough=0.3, emit=((0.65, 0.25, 1.0), 9))
 VIOLET_STRIP = material("Strip", (0.7, 0.3, 1.0), rough=0.3, emit=((0.6, 0.25, 1.0), 5))
+NEON = material("Neon", (0.75, 0.3, 1.0), rough=0.3, emit=((0.62, 0.22, 1.0), 5.5))
 VIOLET_SOFT = material("HoverGlow", (0.7, 0.3, 1.0), rough=1.0, emit=((0.6, 0.25, 1.0), 0.8))
 VIOLET_SOFT.blend_method = "BLEND"
 VIOLET_SOFT.node_tree.nodes["Principled BSDF"].inputs["Alpha"].default_value = 0.14
@@ -355,12 +356,36 @@ core.name = "Hovercraft_HoloCore"
 core.data.materials.append(VIOLET)
 bpy.ops.object.shade_smooth()
 attach(core)
-# the screen block, rising from the shelf, face angled up at the rider
-box("ScreenBlock", (1.7, 0.55, 1.0), (0, -2.55, SHELF + 0.38), BLACK, rot=(math.radians(28), 0, 0), bevel=0.05, segments=3)
-box("Screen", (1.45, 0.03, 0.76), (0, -2.55 + 0.29, SHELF + 0.4), SCREEN, rot=(math.radians(28), 0, 0))
-for i in range(3):                                                    # readout bars on the screen
-    box("Readout%d" % i, (0.3 + 0.28 * i, 0.02, 0.06), (-0.5 + 0.05 * i, -2.55 + 0.305 - 0.09 * i, SHELF + 0.62 - i * 0.17), VIOLET_STRIP,
-        rot=(math.radians(28), 0, 0))
+# the screen: a tall upright panel rising from the shelf behind the hologram,
+# facing the rider, with live readouts
+SCREEN_Y = -2.6
+box("ScreenBlock", (1.25, 0.32, 1.7), (0, SCREEN_Y, SHELF + 0.72), BLACK, bevel=0.05, segments=3)
+box("ScreenPanel", (1.05, 0.03, 1.5), (0, SCREEN_Y + 0.165, SHELF + 0.74), SCREEN)
+box("ScreenHeader", (0.9, 0.02, 0.08), (0, SCREEN_Y + 0.185, SHELF + 1.38), VIOLET_STRIP)
+readouts = []
+for i in range(5):                                                    # five bars that rise and fall
+    readouts.append(box("Readout%d" % i, (0.5, 0.02, 0.09), (-0.2, SCREEN_Y + 0.185, SHELF + 1.18 - i * 0.16), VIOLET_STRIP))
+scan = box("ScanLine", (0.95, 0.02, 0.03), (0, SCREEN_Y + 0.19, SHELF + 0.74), NEON)
+ring_glyph = tube("ScreenRing", 0.16, 0.02, 0.03, (0.3, SCREEN_Y + 0.185, SHELF + 0.2), VIOLET_STRIP, rot=(math.radians(90), 0, 0), verts=24)
+# reactive: bars breathe at different rates, the scan line sweeps, the panel pulses
+panel_bsdf = SCREEN.node_tree.nodes["Principled BSDF"]
+for f in range(scene.frame_start, scene.frame_end + 1, 2):
+    t = f / FPS
+    scene.frame_set(f)
+    for i, bar in enumerate(readouts):
+        width = 0.55 + 0.4 * math.sin(2 * math.pi * t / (1.3 + 0.37 * i) + i)
+        bar.scale = (max(0.15, width), 1, 1)
+        bar.location.x = -0.42 + 0.5 * bar.scale.x / 2
+        bar.keyframe_insert("scale", index=0, frame=f)
+        bar.keyframe_insert("location", index=0, frame=f)
+    sweep = (t / 1.8) % 1.0
+    scan.location.z = SHELF + 0.05 + 1.38 * (sweep if int(t / 1.8) % 2 == 0 else 1.0 - sweep)
+    scan.keyframe_insert("location", index=2, frame=f)
+    ring_glyph.rotation_euler.y = 2 * math.pi * t / 2.5
+    ring_glyph.keyframe_insert("rotation_euler", index=1, frame=f)
+    panel_bsdf.inputs["Emission Strength"].default_value = 1.4 + 0.5 * math.sin(2 * math.pi * t / 2.0)
+    panel_bsdf.inputs["Emission Strength"].keyframe_insert("default_value", frame=f)
+scene.frame_set(scene.frame_start)
 # handlebars anchored into the back of the shelf: a chamfered stem and yoke
 # with winged grips angled out and forward, lit tips and a lit slot
 cylinder("StemBase", 0.26, 0.12, (0, -2.08, SHELF + 0.02), CHROME, verts=8)
@@ -410,7 +435,6 @@ def hull_line(name, idx, y_from, y_to, dz, height, mat, inset=1.0):
     return attach(o)
 
 
-NEON = material("Neon", (0.75, 0.3, 1.0), rough=0.3, emit=((0.62, 0.22, 1.0), 5.5))
 hull_line("ChineNeon", 1, -6.7, 7.3, 0.02, 0.09, NEON, inset=1.01)     # neon along both chines, full length
 hull_line("DeckNeon", 5, -6.0, -1.5, -0.32, 0.08, VIOLET_STRIP)        # and along the bow sides
 hull_line("RearNeon", 5, 4.5, 7.3, -0.3, 0.06, VIOLET_STRIP)
