@@ -6,7 +6,7 @@ camera follows him down, and he belly-flops onto the plate.
 Beat 3: he gets up with his arms, rubs his forearm looking down at it,
 then realises he is somewhere else and turns to take in the empty plate.
 
-Frames 1-460 at 24 fps. Later beats extend this timeline.
+Frames 1-496 at 24 fps. Later beats extend this timeline.
 
 Run inside Blender with slimsico.blend open after build_character.py.
 Re-running replaces the animation. Render with render_draft2.py.
@@ -15,7 +15,7 @@ import bpy
 import math
 import os
 import sys
-from mathutils import Euler, Quaternion, Vector
+from mathutils import Euler, Matrix, Quaternion, Vector
 
 sys.path.insert(0, os.path.dirname(bpy.data.filepath))
 from rig_utils import Poser, floor_violations, ground_clamp, key, motion_spikes, set_interpolation  # noqa: E402
@@ -29,7 +29,7 @@ cam = bpy.data.objects["Camera"]
 FPS = 24
 F_START, F_SOUND, F_TILT, F_FOUND, F_LAND = 1, 60, 72, 108, 190
 SOUND_CUES = [("wind", 1), ("whistle", F_SOUND), ("splat", F_LAND)]      # read by render_draft2.py
-SUBTITLES = [("Where am I?", 410, 452)]                                      # read by render_draft2.py
+SUBTITLES = [("Where am I?", 412, 452)]                                      # read by render_draft2.py
 LIE_Z = 1.12                        # root height lying on his belly (half the belly depth)
 
 # ------------------------------------------------------------ reset
@@ -164,7 +164,7 @@ poser.pose(240, {"upper_arm.L": (-0.9, -0.2, -0.3), "forearm.L": (-0.95, -0.1, -
 # and he turns slowly to take in the empty plate. The ground clamp keeps
 # whatever is lowest in contact through the whole get-up.
 F_LIE, F_PUSH1, F_PUSH2, F_KNEES, F_CROUCH, F_STAND = 241, 256, 264, 276, 290, 304
-F_RUB, F_REAL, F_LIFT, F_TURN, F_END = 316, 372, 384, 400, 460
+F_RUB, F_REAL, F_LIFT, F_SAY, F_TURN, F_END = 316, 372, 384, 412, 452, 496
 LIE_Y = RY - 1.4
 R90 = math.radians(90)
 
@@ -228,14 +228,72 @@ for f in range(F_RUB + 6, F_REAL - 6):
     poser.pose(f, rub_pose(math.sin(2 * math.pi * t / 0.75)))
 poser.pose(F_REAL, rub_pose(0.0))
 
-# the realisation: the arms lower, the head lifts once and holds, then a slow
-# turn of the whole body to take in the empty plate
-poser.pose(F_LIFT, {"upper_arm.L": (-0.5, -0.25, -0.83), "forearm.L": (-0.45, -0.3, -0.84),
-                    "upper_arm.R": (0.5, -0.25, -0.83), "forearm.R": (0.45, -0.3, -0.84),
-                    "head": (0, -0.18, 0.98), "neck": (0, -0.05, 1.0)})
-poser.pose(F_END, {"upper_arm.L": (-0.5, -0.25, -0.83), "forearm.L": (-0.45, -0.3, -0.84),
-                   "upper_arm.R": (0.5, -0.25, -0.83), "forearm.R": (0.45, -0.3, -0.84),
-                   "head": (0, -0.18, 0.98), "neck": (0, -0.05, 1.0)})
+# the realisation: the arms lower and the head lifts once and holds
+HEAD_UP = {"head": (0, -0.18, 0.98), "neck": (0, -0.05, 1.0)}
+ARMS_REST = {"upper_arm.L": (-0.5, -0.25, -0.83), "forearm.L": (-0.45, -0.3, -0.84),
+             "upper_arm.R": (0.5, -0.25, -0.83), "forearm.R": (0.45, -0.3, -0.84)}
+poser.pose(F_LIFT, {**ARMS_REST, **HEAD_UP})
+
+# "Where am I?": both hands come up and turn out in a shrug, with a second
+# small lift on "I", then settle; the head stays put
+SHRUG = {"upper_arm.L": (-0.62, -0.42, -0.55), "forearm.L": (-0.72, -0.28, 0.62),
+         "upper_arm.R": (0.62, -0.42, -0.55), "forearm.R": (0.72, -0.28, 0.62)}
+SHRUG_HIGH = {"upper_arm.L": (-0.66, -0.4, -0.5), "forearm.L": (-0.74, -0.2, 0.68),
+              "upper_arm.R": (0.66, -0.4, -0.5), "forearm.R": (0.74, -0.2, 0.68)}
+poser.pose(F_SAY - 6, {**ARMS_REST, **HEAD_UP})
+poser.pose(F_SAY + 4, {**SHRUG, **HEAD_UP})
+poser.pose(F_SAY + 22, {**SHRUG, **HEAD_UP})
+poser.pose(F_SAY + 28, {**SHRUG_HIGH, **HEAD_UP})
+poser.pose(F_SAY + 38, {**SHRUG, **HEAD_UP})
+poser.pose(F_SAY + 54, {**ARMS_REST, **HEAD_UP})
+poser.pose(F_END, {**ARMS_REST, **HEAD_UP})
+
+# the mouth: an open-mouth shape swaps in for the smile and opens and closes
+# per syllable. It lives on the head bone like the smile does.
+mouth = bpy.data.objects["Mouth"]
+mouth_open = bpy.data.objects.get("MouthOpen")
+scene.frame_set(F_LIFT + 4)                                 # standing upright, head level
+if mouth_open is None:
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.26, segments=32, ring_count=16, location=(0, 0, 0))
+    mouth_open = bpy.context.object
+    mouth_open.name = "MouthOpen"
+    mouth_open.data.materials.append(mouth.data.materials[0])
+    bpy.ops.object.shade_smooth()
+    for c in mouth_open.users_collection:
+        c.objects.unlink(mouth_open)
+    bpy.data.collections["Character"].objects.link(mouth_open)
+mouth_open.animation_data_clear()
+# same parenting as the smile (head bone, same parent inverse), just offset a
+# little lower on the face; no world-space reads needed
+mouth_open.parent = rig
+mouth_open.parent_type = "BONE"
+mouth_open.parent_bone = "head"
+mouth_open.matrix_parent_inverse = mouth.matrix_parent_inverse.copy()
+smile_points = [p.co for p in mouth.data.splines[0].bezier_points]      # the curve carries the position
+mouth_open.location = mouth.location + sum(smile_points, Vector()) / len(smile_points) + Vector((0, -0.03, -0.1))
+mouth_open.rotation_mode = "XYZ"
+mouth_open.rotation_euler = (0, 0, 0)
+CLOSED, WHERE, AM, EYE = (0.9, 0.4, 0.05), (1.0, 0.4, 0.7), (0.85, 0.4, 0.38), (0.8, 0.4, 0.8)
+
+
+def show(obj, frame, on):
+    scene.frame_set(frame)
+    obj.hide_render = not on
+    obj.hide_viewport = not on
+    obj.keyframe_insert("hide_render", frame=frame)
+    obj.keyframe_insert("hide_viewport", frame=frame)
+
+
+for o, on in ((mouth, True), (mouth_open, False)):
+    show(o, 1, on)
+    show(o, F_SAY, not on)
+    show(o, F_SAY + 40, on)
+for frame, scl in ((F_SAY, CLOSED), (F_SAY + 3, WHERE), (F_SAY + 8, WHERE), (F_SAY + 12, CLOSED),
+                   (F_SAY + 15, AM), (F_SAY + 19, AM), (F_SAY + 22, CLOSED),
+                   (F_SAY + 26, EYE), (F_SAY + 34, EYE), (F_SAY + 39, CLOSED)):
+    key(mouth_open, frame, scale=scl)
+
+# then a slow turn of the whole body to take in the empty plate
 key(rig, F_TURN, loc=(RX, STAND_Y, 0.0))
 key_rot(F_TURN, 0.0)
 key(rig, F_END, loc=(RX, STAND_Y, 0.0))
@@ -267,8 +325,9 @@ for i, (dx, dz) in enumerate(((0.35, -0.25), (-0.3, 0.3), (0.2, -0.15), (-0.1, 0
 SHOTS = [
     (F_LIE, F_STAND + 6, (-10.0, LIE_Y - 15.0, 4.5), (-9.0, LIE_Y - 14.0, 4.8), (RX, LIE_Y - 3.0, 3.0), (RX, STAND_Y, 4.6)),   # get-up, front-left medium
     (F_STAND + 7, F_REAL + 6, (4.2, STAND_Y - 8.6, 9.4), (3.8, STAND_Y - 8.2, 9.2), (RX - 0.4, STAND_Y - 0.6, 5.7), (RX - 0.4, STAND_Y - 0.6, 5.7)),  # the rub, from above and his right
-    (F_REAL + 7, F_TURN + 4, (-2.2, STAND_Y - 7.5, 7.6), (-2.0, STAND_Y - 7.2, 7.5), (RX, STAND_Y, 7.4), (RX, STAND_Y, 7.4)),   # the head lifts, close
-    (F_TURN + 5, F_END, (-12.0, STAND_Y - 18.0, 8.0), (-44.0, STAND_Y - 68.0, 26.0), (RX, STAND_Y, 5.0), (RX, STAND_Y, 4.0)),   # the reveal: pulls way back
+    (F_REAL + 7, F_SAY - 7, (-2.2, STAND_Y - 7.5, 7.6), (-2.0, STAND_Y - 7.2, 7.5), (RX, STAND_Y, 7.4), (RX, STAND_Y, 7.4)),    # the head lifts, close
+    (F_SAY - 6, F_TURN, (-4.0, STAND_Y - 10.5, 7.2), (-3.6, STAND_Y - 10.0, 7.1), (RX, STAND_Y, 5.9), (RX, STAND_Y, 5.9)),     # the line: face and hands
+    (F_TURN + 1, F_END, (-12.0, STAND_Y - 18.0, 8.0), (-44.0, STAND_Y - 68.0, 26.0), (RX, STAND_Y, 5.0), (RX, STAND_Y, 4.0)),   # the reveal: pulls way back
 ]
 for start, end, ca, cb, ta, tb in SHOTS:
     key(cam, start, loc=ca, interp="LINEAR")
@@ -278,7 +337,7 @@ for start, end, ca, cb, ta, tb in SHOTS:
 # the lens tightens as it finds him, widens back out as he comes down, and
 # goes wide for the reveal
 for frame, lens in ((F_TILT, 30), (F_FOUND + 10, 62), (F_LAND - 40, 55), (F_LAND - 6, 32), (F_LIE - 1, 30),
-                    (F_LIE, 35), (F_TURN + 4, 40), (F_TURN + 5, 28), (F_END, 24)):
+                    (F_LIE, 35), (F_SAY - 7, 40), (F_SAY - 6, 36), (F_TURN, 36), (F_TURN + 1, 28), (F_END, 24)):
     cam.data.lens = lens
     cam.data.keyframe_insert("lens", frame=frame)
 

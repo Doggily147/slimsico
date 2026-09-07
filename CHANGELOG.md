@@ -2,6 +2,15 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-07 - Draft 2: he says the line
+
+### Added
+- A talking mouth: an open-mouth shape on the head bone swaps in for the smile while he speaks and opens and closes per syllable ("Where", "am", "I"), then the smile returns.
+- A hand gesture for the line: both hands come up and turn out in a shrug, with a second small lift on "I", then settle.
+
+### Changed
+- The line is now delivered in a medium shot of his face and hands (frames 406-452) before the wide pull-back, so the mouth and gesture read; the slow body turn starts with the pull-back. The beat runs to frame 496.
+
 ## 2026-09-06 - Draft 2, beat 3: up, the arm rub, somewhere else
 
 ### Added
