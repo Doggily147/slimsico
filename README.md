@@ -35,7 +35,7 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `rig_utils.py` - shared helpers for the animation scripts: keying with explicit interpolation, a parent-aware bone aimer, and a ground clamp that keeps the body's lowest point on the floor.
 - `build_draft2.py` - draft 2 animation on the main scene (the peaceful plate, a sound from above, the camera finds Yellow tumbling far up in the sky and follows him down to a belly-flop landing).
 - `render_draft2.py` - renders draft 2 headless and mixes the sound (wind bed, the falling whistle, the splat) plus an optional music bed from `audio/ambient.*`.
-- `build_hovercraft.py` - a futuristic hover-jetski for Yellow: pointed nose, lofted dark-grey hull, saddle and handlebars, tinted cowl, swept sponsons with light strips, twin glowing thrusters and a swept tail fin, repulsor pads that light the ground; hovers with a gentle bob. Parented to one root.
+- `build_hovercraft.py` - a flying jetski for Yellow modelled after a small runabout: one smooth hull mesh from cross-sections (V hull, hard chines, flared gunwales, tall deck sides, rising hood), painted purple hood, black hull and rear, white bow sides; saddle seat, handlebar pod, mirrors, rub rail, boarding step; a purple hover pad underneath that lights the ground; hovers with a gentle bob.
 - `build_office.py` - builds the "OfficeTest" scene: an office set, the worker and police officer cloned from Yellow, and the three-attempt robbery with rewinds.
 - `render_office_test.py` - renders OfficeTest and assembles it with the rewinds, subtitles, sound, and an optional music bed from `audio/ambient.*`.
 - `slimsico.blend` - the saved scene: the set, Yellow on the grid (cleared between drafts), and the OfficeTest scene.
@@ -43,7 +43,7 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
 - `renders/office_test.mp4` - the office robbery test scene with rewinds.
 - `renders/draft2.mp4` - draft 2 so far.
-- `renders/hovercraft.png` - viewport shot of the hover-jetski.
+- `renders/hovercraft.png` - viewport shot of the flying jetski.
 - `CHANGELOG.md` - full history of changes.
 - `DRAFTS.md` - the draft log; each finished draft is archived under `drafts/` and tagged.
 

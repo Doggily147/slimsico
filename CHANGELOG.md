@@ -2,6 +2,11 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-07 - Flying jetski
+
+### Changed
+- The craft is remodelled after a real sit-down jetski rather than an aircraft. The body is one smooth mesh built from fourteen hull cross-sections (keel, hard chine, near-vertical topsides, gunwale, rub rail, tall deck side, deck shoulder, deck centre) with the chine, gunwale and deck edges creased so subdivision keeps them crisp. The hood rises to a handlebar pod and drops to a long, flat-topped saddle. Painted by region: purple hood and fairing, black hull and rear deck, white bow sides. Details: chrome-black handlebars with purple grips and levers, a lit pod screen, mirror pods, a rubber rub rail that follows the hull, a boarding step and grab handle at the stern, a bow eye. Instead of a jet pump, a purple hover pad underneath with three point lights that light the plate, and a faint glow disc; it hovers with a gentle bob. Shape was checked against the reference from the photo's angle and adjusted over three passes.
+
 ## 2026-09-07 - Hover-jetski
 
 ### Changed
