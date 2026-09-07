@@ -356,36 +356,78 @@ core.name = "Hovercraft_HoloCore"
 core.data.materials.append(VIOLET)
 bpy.ops.object.shade_smooth()
 attach(core)
-# the screen: a tall upright panel rising from the shelf behind the hologram,
-# facing the rider, with live readouts
-SCREEN_Y = -2.6
-box("ScreenBlock", (1.25, 0.32, 2.35), (0, SCREEN_Y, SHELF + 1.15), BLACK, bevel=0.05, segments=3)      # rises from the shelf, panel clear of the bars
-box("ScreenPanel", (1.05, 0.03, 1.5), (0, SCREEN_Y + 0.165, SHELF + 1.47), SCREEN)
-box("ScreenHeader", (0.9, 0.02, 0.08), (0, SCREEN_Y + 0.185, SHELF + 2.11), VIOLET_STRIP)
-readouts = []
-for i in range(5):                                                    # five bars that rise and fall
-    readouts.append(box("Readout%d" % i, (0.5, 0.02, 0.09), (-0.2, SCREEN_Y + 0.185, SHELF + 1.91 - i * 0.16), VIOLET_STRIP))
-scan = box("ScanLine", (0.95, 0.02, 0.03), (0, SCREEN_Y + 0.19, SHELF + 1.47), NEON)
-ring_glyph = tube("ScreenRing", 0.16, 0.02, 0.03, (0.3, SCREEN_Y + 0.185, SHELF + 0.93), VIOLET_STRIP, rot=(math.radians(90), 0, 0), verts=24)
-# reactive: bars breathe at different rates, the scan line sweeps, the panel pulses
-panel_bsdf = SCREEN.node_tree.nodes["Principled BSDF"]
+# the hover-screen: a translucent holographic panel floating above the dash
+# behind the hologram, projected from a lit slot in the shelf, showing the
+# animated HUD drawn by make_hud.py (an image sequence)
+import os
+HUD_DIR = os.path.join(os.path.dirname(bpy.data.filepath), "textures", "hud")
+SCREEN_Y = -2.55
+PANEL_Z = SHELF + 1.72
+box("HoloSlot", (0.95, 0.2, 0.06), (0, SCREEN_Y, SHELF + 0.01), CHROME)
+box("HoloSlotLight", (0.8, 0.06, 0.02), (0, SCREEN_Y, SHELF + 0.045), NEON)
+# light wedge from the slot up to the panel's bottom edge
+wedge_mesh = bpy.data.meshes.new("Hovercraft_HoloWedge")
+wb = bmesh.new()
+lo = [wb.verts.new((x, SCREEN_Y + y, SHELF + 0.05)) for x, y in ((-0.4, -0.03), (0.4, -0.03), (0.4, 0.03), (-0.4, 0.03))]
+hi = [wb.verts.new((x, SCREEN_Y + y, PANEL_Z - 0.75)) for x, y in ((-0.52, -0.02), (0.52, -0.02), (0.52, 0.02), (-0.52, 0.02))]
+for i in range(4):
+    j = (i + 1) % 4
+    wb.faces.new((lo[i], lo[j], hi[j], hi[i]))
+wb.to_mesh(wedge_mesh)
+wb.free()
+holo_wedge = bpy.data.objects.new("Hovercraft_HoloWedge", wedge_mesh)
+holo_wedge.data.materials.append(VIOLET_SOFT)
+scene.collection.objects.link(holo_wedge)
+attach(holo_wedge)
+# the panel itself: a plane facing the rider, textured with the HUD sequence
+hud_mat = bpy.data.materials.get("Hover_HUD") or bpy.data.materials.new("Hover_HUD")
+hud_mat.use_nodes = True
+hud_mat.blend_method = "BLEND"
+hud_mat.use_backface_culling = False
+nt = hud_mat.node_tree
+for n in list(nt.nodes):
+    nt.nodes.remove(n)
+out = nt.nodes.new("ShaderNodeOutputMaterial")
+emit = nt.nodes.new("ShaderNodeEmission")
+transp = nt.nodes.new("ShaderNodeBsdfTransparent")
+mix = nt.nodes.new("ShaderNodeMixShader")
+tex = nt.nodes.new("ShaderNodeTexImage")
+first = os.path.join(HUD_DIR, "hud_0001.png")
+hud_img = bpy.data.images.get("hud_0001.png") or bpy.data.images.load(first)
+hud_img.source = "SEQUENCE"
+tex.image = hud_img
+tex.image_user.frame_duration = 72
+tex.image_user.frame_start = 1
+tex.image_user.use_cyclic = True
+tex.image_user.use_auto_refresh = True
+tex.interpolation = "Cubic"
+emit.inputs["Strength"].default_value = 2.6
+nt.links.new(tex.outputs["Color"], emit.inputs["Color"])
+nt.links.new(tex.outputs["Alpha"], mix.inputs["Fac"])
+nt.links.new(transp.outputs["BSDF"], mix.inputs[1])
+nt.links.new(emit.outputs["Emission"], mix.inputs[2])
+nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
+bpy.ops.mesh.primitive_plane_add(size=1, location=(0, SCREEN_Y, PANEL_Z), rotation=(math.radians(90), 0, 0))
+panel = bpy.context.object
+panel.name = "Hovercraft_HoloScreen"
+panel.scale = (1.08, 1.6, 1)
+panel.data.materials.append(hud_mat)
+# the rider sits behind the plane (+Y) and sees its back face, so mirror the
+# UVs horizontally to keep the HUD readable from the seat
+for loop in panel.data.uv_layers.active.data:
+    loop.uv.x = 1.0 - loop.uv.x
+attach(panel)
+# the panel floats: a tiny drift and tilt so it reads as a projection
+panel.animation_data_clear()
 for f in range(scene.frame_start, scene.frame_end + 1, 2):
     t = f / FPS
     scene.frame_set(f)
-    for i, bar in enumerate(readouts):
-        width = 0.55 + 0.4 * math.sin(2 * math.pi * t / (1.3 + 0.37 * i) + i)
-        bar.scale = (max(0.15, width), 1, 1)
-        bar.location.x = -0.42 + 0.5 * bar.scale.x / 2
-        bar.keyframe_insert("scale", index=0, frame=f)
-        bar.keyframe_insert("location", index=0, frame=f)
-    sweep = (t / 1.8) % 1.0
-    scan.location.z = SHELF + 0.78 + 1.38 * (sweep if int(t / 1.8) % 2 == 0 else 1.0 - sweep)
-    scan.keyframe_insert("location", index=2, frame=f)
-    ring_glyph.rotation_euler.y = 2 * math.pi * t / 2.5
-    ring_glyph.keyframe_insert("rotation_euler", index=1, frame=f)
-    panel_bsdf.inputs["Emission Strength"].default_value = 1.4 + 0.5 * math.sin(2 * math.pi * t / 2.0)
-    panel_bsdf.inputs["Emission Strength"].keyframe_insert("default_value", frame=f)
+    panel.location.z = PANEL_Z + 0.025 * math.sin(2 * math.pi * t / 2.1)
+    panel.rotation_euler = (math.radians(90) + 0.012 * math.sin(2 * math.pi * t / 3.3), 0.01 * math.sin(2 * math.pi * t / 2.6), 0)
+    panel.keyframe_insert("location", index=2, frame=f)
+    panel.keyframe_insert("rotation_euler", frame=f)
 scene.frame_set(scene.frame_start)
+
 # handlebars anchored into the back of the shelf: a chamfered stem and yoke
 # with winged grips angled out and forward, lit tips and a lit slot
 cylinder("StemBase", 0.26, 0.12, (0, -2.08, SHELF + 0.02), CHROME, verts=8)

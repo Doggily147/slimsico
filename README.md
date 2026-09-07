@@ -35,7 +35,8 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `rig_utils.py` - shared helpers for the animation scripts: keying with explicit interpolation, a parent-aware bone aimer, and a ground clamp that keeps the body's lowest point on the floor.
 - `build_draft2.py` - draft 2 animation on the main scene (the peaceful plate, a sound from above, the camera finds Yellow tumbling far up in the sky and follows him down to a belly-flop landing).
 - `render_draft2.py` - renders draft 2 headless and mixes the sound (wind bed, the falling whistle, the splat) plus an optional music bed from `audio/ambient.*`.
-- `build_hovercraft.py` - a flying jetski for Yellow modelled after a small runabout, sharp and futuristic: one hull mesh from cross-sections with every hard line creased (keel, chine, strake, gunwale, rail, deck side, footwell rims), painted purple hood, black hull and rear, white bow sides; footwells with mats, one sculpted two-seat unit with backrests, an integrated dash with a hologram projector, a tall live screen behind it, windshield, winged handlebars, light strips, rub rail, a thruster bay at the stern with glowing nozzles, boarding step; anti-grav pods with neon rings underneath that light the ground, neon chine lines and winglets; hovers with a gentle bob.
+- `build_hovercraft.py` - a flying jetski for Yellow modelled after a small runabout, sharp and futuristic: one hull mesh from cross-sections with every hard line creased (keel, chine, strake, gunwale, rail, deck side, footwell rims), painted purple hood, black hull and rear, white bow sides; footwells with mats, one sculpted two-seat unit with backrests, an integrated dash with a hologram projector and a floating holographic hover-screen behind it showing the animated HUD from `make_hud.py`, windshield, winged handlebars, light strips, rub rail, a thruster bay at the stern with glowing nozzles, boarding step; anti-grav pods with neon rings underneath that light the ground, neon chine lines and winglets; hovers with a gentle bob.
+- `make_hud.py` - draws the jetski's holographic HUD as a 72-frame looping image sequence in `textures/hud/` (speed gauge, altitude bar, radar sweep, power cells, status ticker). Needs Pillow.
 - `build_office.py` - builds the "OfficeTest" scene: an office set, the worker and police officer cloned from Yellow, and the three-attempt robbery with rewinds.
 - `render_office_test.py` - renders OfficeTest and assembles it with the rewinds, subtitles, sound, and an optional music bed from `audio/ambient.*`.
 - `slimsico.blend` - the saved scene: the set, Yellow on the grid (cleared between drafts), and the OfficeTest scene.
@@ -44,6 +45,7 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `renders/office_test.mp4` - the office robbery test scene with rewinds.
 - `renders/draft2.mp4` - draft 2 so far.
 - `renders/hovercraft.png` - viewport shot of the flying jetski.
+- `renders/hovercraft_dash.png` - the rider's view of the dash, hologram and hover-screen.
 - `CHANGELOG.md` - full history of changes.
 - `DRAFTS.md` - the draft log; each finished draft is archived under `drafts/` and tagged.
 
@@ -59,6 +61,12 @@ Grid texture:
 
 ```
 python make_tile_texture.py
+```
+
+Jetski HUD frames (before running `build_hovercraft.py`):
+
+```
+python make_hud.py
 ```
 
 Character: open `slimsico.blend` in Blender and run `build_character.py` from
