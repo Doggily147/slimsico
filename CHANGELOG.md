@@ -5,6 +5,7 @@ All notable changes to slimsico. Newest first. Dates are commit dates.
 ## 2026-09-06 - Draft 2, beat 3: up, the arm rub, somewhere else
 
 ### Added
+- The subtitle "Where am I?" over the end of the reveal (frames 410-452), with the beat extended to frame 460 so it has room.
 - Frames 241-440. He gets up with his arms (elbows lift, hands push under the chest, back arches onto hands and knees, feet tuck under, stands with a small overshoot), the ground clamp keeping contact throughout. He holds his left forearm across his belly, looks down at it once, and rubs it with his right hand three times. Then the arms lower, the head lifts once and holds, and he turns slowly to take in the plate while the camera pulls far back to show it deserted around him. Four camera set-ups: a front-left medium for the get-up, a shot from above his eyeline for the rub, a close-up for the head lift, and the wide pull-back.
 
 ## 2026-09-06 - Draft 2, beat 2: the fall and the landing

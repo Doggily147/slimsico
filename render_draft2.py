@@ -19,8 +19,8 @@ MUSIC = next((p for p in (os.path.join(ROOT, "audio", "ambient" + ext) for ext i
 FPS = 24
 
 # frames match build_draft2.py
-F_END = 440
-SUBTITLES = []
+F_END = 460
+SUBTITLES = [("Where am I?", 410, 452)]
 SOUND_CUES = [("wind", 1), ("whistle", 60), ("splat", 190)]
 SOUNDS = {
     # a long, faint whistle from far above that slides down and grows as he nears

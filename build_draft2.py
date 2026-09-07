@@ -6,7 +6,7 @@ camera follows him down, and he belly-flops onto the plate.
 Beat 3: he gets up with his arms, rubs his forearm looking down at it,
 then realises he is somewhere else and turns to take in the empty plate.
 
-Frames 1-440 at 24 fps. Later beats extend this timeline.
+Frames 1-460 at 24 fps. Later beats extend this timeline.
 
 Run inside Blender with slimsico.blend open after build_character.py.
 Re-running replaces the animation. Render with render_draft2.py.
@@ -29,6 +29,7 @@ cam = bpy.data.objects["Camera"]
 FPS = 24
 F_START, F_SOUND, F_TILT, F_FOUND, F_LAND = 1, 60, 72, 108, 190
 SOUND_CUES = [("wind", 1), ("whistle", F_SOUND), ("splat", F_LAND)]      # read by render_draft2.py
+SUBTITLES = [("Where am I?", 410, 452)]                                      # read by render_draft2.py
 LIE_Z = 1.12                        # root height lying on his belly (half the belly depth)
 
 # ------------------------------------------------------------ reset
@@ -163,7 +164,7 @@ poser.pose(240, {"upper_arm.L": (-0.9, -0.2, -0.3), "forearm.L": (-0.95, -0.1, -
 # and he turns slowly to take in the empty plate. The ground clamp keeps
 # whatever is lowest in contact through the whole get-up.
 F_LIE, F_PUSH1, F_PUSH2, F_KNEES, F_CROUCH, F_STAND = 241, 256, 264, 276, 290, 304
-F_RUB, F_REAL, F_LIFT, F_TURN, F_END = 316, 372, 384, 400, 440
+F_RUB, F_REAL, F_LIFT, F_TURN, F_END = 316, 372, 384, 400, 460
 LIE_Y = RY - 1.4
 R90 = math.radians(90)
 
