@@ -221,7 +221,7 @@ def sphere(name, radius, loc, mat, scale=(1, 1, 1), rot=None, parent=body):
 
 EYE = material("EyeDark", (0.05, 0.035, 0.03), rough=0.22)     # a little wet, catches light
 CATCHLIGHT = material("EyeCatchlight", (1.0, 1.0, 1.0), rough=0.3)
-MOUTH = material("MouthDark", (0.16, 0.07, 0.05), rough=0.55)
+MOUTH = material("MouthDark", (0.09, 0.045, 0.035), rough=0.55)
 
 # eyes: soft ovals sunk slightly into the head, tilted a touch outward, with a catchlight
 for s, side in ((-1, "L"), (1, "R")):
@@ -237,22 +237,22 @@ for s, side in ((-1, "L"), (1, "R")):
 # mouth: a gentle smile drawn as a tapered stroke lying on the face
 curve = bpy.data.curves.new("Mouth", "CURVE")
 curve.dimensions = "3D"
-curve.bevel_depth = 0.048
+curve.bevel_depth = 0.034
 curve.bevel_resolution = 6
 curve.fill_mode = "FULL"
 curve.use_fill_caps = True
 spline = curve.splines.new("BEZIER")
-ARC_R, ARC_SPAN, POINTS = 1.1, math.radians(104), 9
+ARC_R, ARC_SPAN, POINTS = 0.95, math.radians(100), 9
 spline.bezier_points.add(POINTS - 1)
 for i, bpt in enumerate(spline.bezier_points):
     t = i / (POINTS - 1)
     a = -ARC_SPAN / 2 + t * ARC_SPAN
     # wide arc centred well above the mouth so the corners curl up
-    probe = (ARC_R * math.sin(a), -2.0, HEAD_C.z + 0.35 - ARC_R * math.cos(a))
+    probe = (ARC_R * math.sin(a), -2.0, HEAD_C.z + 0.24 - ARC_R * math.cos(a))
     loc, n = on_body(probe)
     bpt.co = loc + n * 0.012
     bpt.handle_left_type = bpt.handle_right_type = "AUTO"
-    bpt.radius = 0.5 + 0.5 * math.sin(math.pi * t)          # slightly thinner at the corners
+    bpt.radius = 0.55 + 0.45 * math.sin(math.pi * t)        # slightly thinner at the corners
 mouth = bpy.data.objects.new("Mouth", curve)
 scene.collection.objects.link(mouth)
 mouth.data.materials.append(MOUTH)

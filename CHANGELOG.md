@@ -4,6 +4,9 @@ All notable changes to slimsico. Newest first. Dates are commit dates.
 
 ## 2026-09-07 - Draft 2: he says the line
 
+### Changed
+- The smile read as a moustache: it is now a thinner, darker, slightly narrower stroke sitting a little lower on the face.
+
 ### Added
 - A talking mouth: an open-mouth shape on the head bone swaps in for the smile while he speaks and opens and closes per syllable ("Where", "am", "I"), then the smile returns.
 - A hand gesture for the line: both hands come up and turn out in a shrug, with a second small lift on "I", then settle.
