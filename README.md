@@ -35,6 +35,7 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `rig_utils.py` - shared helpers for the animation scripts: keying with explicit interpolation, a parent-aware bone aimer, and a ground clamp that keeps the body's lowest point on the floor.
 - `build_draft2.py` - draft 2 animation on the main scene (the peaceful plate, a sound from above, the camera finds Yellow tumbling far up in the sky and follows him down to a belly-flop landing).
 - `render_draft2.py` - renders draft 2 headless and mixes the sound (wind bed, the falling whistle, the splat) plus an optional music bed from `audio/ambient.*`.
+- `build_hovercraft.py` - a stylised hovercraft prop sized for Yellow: bevelled hull on a rubber skirt, open cockpit with windscreen, seat and yoke, ducted rear fan with grille and rudders, intake pods, roll bar, lights, stripes and a number; parented to one root, fan blades to a spinning pivot.
 - `build_office.py` - builds the "OfficeTest" scene: an office set, the worker and police officer cloned from Yellow, and the three-attempt robbery with rewinds.
 - `render_office_test.py` - renders OfficeTest and assembles it with the rewinds, subtitles, sound, and an optional music bed from `audio/ambient.*`.
 - `slimsico.blend` - the saved scene: the set, Yellow on the grid (cleared between drafts), and the OfficeTest scene.
@@ -42,6 +43,7 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
 - `renders/office_test.mp4` - the office robbery test scene with rewinds.
 - `renders/draft2.mp4` - draft 2 so far.
+- `renders/hovercraft.png` - viewport shot of the hovercraft.
 - `CHANGELOG.md` - full history of changes.
 - `DRAFTS.md` - the draft log; each finished draft is archived under `drafts/` and tagged.
 

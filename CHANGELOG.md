@@ -2,6 +2,11 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-07 - Hovercraft
+
+### Added
+- `build_hovercraft.py`: a stylised hovercraft prop, 16 by 9 studs. A bevelled teal hull with a rounded nose on a fat rubber skirt with a rubbing strake, an open cockpit (seat, dashboard with a lit screen, steering yoke, raked tinted windscreen in a steel frame, roll bar), a raised rear deck carrying a big ducted six-blade fan with an orange lip, a front grille and twin orange rudders, twin intake pods, headlights and tail lights, white and orange racing stripes, side flashes and the number 07. Everything hangs off the "Hovercraft" empty; the blades hang off "HovercraftFan" so they can spin.
+
 ## 2026-09-07 - Draft 2: he says the line
 
 ### Changed
