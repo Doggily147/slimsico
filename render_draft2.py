@@ -4,7 +4,8 @@ quietly if one is placed at audio/ambient.* .
 
   python render_draft2.py            -> renders/draft2.mp4
 
-Needs ffmpeg on PATH. Pass --no-render to only redo the sound pass.
+Needs ffmpeg on PATH. Pass --no-render to only redo the sound pass, or
+--from N to render only frames N..end and splice them onto the kept raw render.
 """
 import os
 import subprocess
@@ -18,11 +19,13 @@ MUSIC = next((p for p in (os.path.join(ROOT, "audio", "ambient" + ext) for ext i
               if os.path.exists(p)), None)
 FPS = 24
 
-# frames match build_draft2.py and build_draft2_beat4.py
-F_END = 912
+# frames match build_draft2.py and build_draft2_beat4.py / beat5
+F_END = 1080
+F_ADV, F_LOOM = 914, 1030
 SUBTITLES = [("Where am I?", 412, 452), ("I will walk around to find clues", 504, 558)]
 SOUND_CUES = [("wind", 1), ("whistle", 60), ("splat", 190),
-              ("crate_whistle", 612), ("thud", 700), ("creak", 768), ("crash", 784), ("roar", 840)]
+              ("crate_whistle", 612), ("thud", 700), ("creak", 768), ("crash", 784), ("roar", 840),
+              ("thump", 980), ("growl", 1030)] + [("stomp", f) for f in range(F_ADV + 6, F_LOOM, 11)]
 SOUNDS = {
     # a long, faint whistle from far above that slides down and grows as he nears
     "whistle": ("0.2*sin(2*PI*(1700-600*t/5.4)*t)*min(1\\,t/2.5)*(0.3+0.7*t/5.4)", 5.4),
@@ -38,6 +41,12 @@ SOUNDS = {
     "crash": ("0.95*exp(-t*5)*(random(0)-0.5)+0.5*exp(-t*9)*sin(2*PI*58*t)", 1.4),
     # the roar: a low growl with a rasp that swells, wavers and trails off
     "roar": ("0.75*sin(2*PI*(68+14*sin(2*PI*4.5*t))*t)*(1+0.5*sin(2*PI*31*t))*min(1\\,t*4)*exp(-t*0.8)+0.3*exp(-t*1.1)*min(1\\,t*4)*(random(0)-0.5)", 2.0),
+    # Yellow landing on his back: a soft body thump
+    "thump": ("0.6*exp(-t*16)*sin(2*PI*80*t)+0.3*exp(-t*30)*(random(0)-0.5)", 0.5),
+    # the monster's footfalls: a deep stomp with a little grit
+    "stomp": ("0.7*exp(-t*14)*sin(2*PI*38*t)+0.2*exp(-t*40)*(random(0)-0.5)", 0.6),
+    # a low rolling growl as it looms
+    "growl": ("0.55*sin(2*PI*(55+8*sin(2*PI*3*t))*t)*(1+0.4*sin(2*PI*27*t))*min(1\\,t*3)*exp(-t*0.7)", 2.5),
 }
 NOISE_BEDS = {
     # soft wind: pink noise, low-passed, gently breathing
@@ -48,7 +57,23 @@ raw = os.path.join(RENDERS, "draft2_raw.mp4")
 out = os.path.join(RENDERS, "draft2.mp4")
 total = F_END / FPS
 
-if "--no-render" not in sys.argv:
+if "--from" in sys.argv:
+    first = int(sys.argv[sys.argv.index("--from") + 1])
+    part = os.path.join(RENDERS, "draft2_raw_part.mp4")
+    head = os.path.join(RENDERS, "draft2_raw_head.mp4")
+    subprocess.run([BLENDER, "-b", os.path.join(ROOT, "slimsico.blend"), "-S", "Scene", "-s", str(first), "-e", str(F_END),
+                    "--python-expr", "import bpy; bpy.context.scene.render.filepath = %r" % part.replace("\\", "/"), "-a"],
+                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    # the kept raw render up to the splice point, re-encoded so the join is clean
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", raw, "-frames:v", str(first - 1), "-c:v", "libx264", "-crf", "18", "-preset", "fast",
+                    "-pix_fmt", "yuv420p", "-an", head], check=True)
+    joined = os.path.join(RENDERS, "draft2_raw_joined.mp4")
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", head, "-i", part, "-filter_complex", "[0:v][1:v]concat=n=2:v=1:a=0[v]", "-map", "[v]",
+                    "-c:v", "libx264", "-crf", "18", "-preset", "fast", "-pix_fmt", "yuv420p", joined], check=True)
+    os.replace(joined, raw)
+    os.remove(head)
+    os.remove(part)
+elif "--no-render" not in sys.argv:
     if os.path.exists(raw):
         os.remove(raw)
     subprocess.run([BLENDER, "-b", os.path.join(ROOT, "slimsico.blend"), "-S", "Scene", "-a"],
@@ -86,5 +111,4 @@ cmd += ["-filter_complex", video + ";" + ";".join(audio_filters), "-map", "[vout
         "-c:v", "libx264", "-crf", "20", "-preset", "slow", "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "160k", "-t", "%.3f" % total, out]
 subprocess.run(cmd, check=True)
-os.remove(raw)
 print("wrote", out, "%.2fs" % total, "| music:", "yes" if MUSIC else "none")

@@ -9,9 +9,11 @@ Run inside Blender with slimsico.blend open. Re-running replaces the crate.
 import bpy
 import math
 import random
+from mathutils import Matrix
 
 scene = bpy.data.scenes["Scene"]
-bpy.context.window.scene = scene
+if bpy.context.window:
+    bpy.context.window.scene = scene
 random.seed(11)
 
 SIZE = 7.5
@@ -105,8 +107,8 @@ def box(name, size, loc, mat, parent, rot=(0, 0, 0), bevel=0.02):
     bpy.ops.mesh.primitive_cube_add(size=1, location=loc, rotation=rot)
     o = bpy.context.object
     o.name = name
-    o.scale = size
-    bpy.ops.object.transform_apply(scale=True)
+    # bake the size into the mesh (transform_apply can zero the location)
+    o.data.transform(Matrix.Diagonal((*size, 1.0)))
     o.data.materials.append(mat)
     if bevel:
         b = o.modifiers.new("Bevel", "BEVEL")

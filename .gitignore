@@ -2,3 +2,4 @@
 *.blend2
 __pycache__/
 textures/hud_demo/
+renders/draft2_raw*.mp4

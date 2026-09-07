@@ -2,6 +2,15 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-07 - Draft 2, beat 5: the trip and the claw
+
+### Added
+- `build_draft2_beat5.py` (frames 913-1080): Yellow backs away from the monster step by step, arms up, eyes on it (the walk cycle run backwards). One slat from the burst flew further than the rest, right over his head, and landed behind him; his trailing foot catches it, the leg hooks, the arms windmill and he goes over backwards onto his back with a bounce. He props up on his elbows, looks at the monster, and shoves himself back twice with his heels. The monster comes on with a heavy lumbering walk (short thick legs, the body rolling, arms hunched, tail swinging, jaw open, eyes on him) and the ground thumps under each stomp; it stops over him, leans in, and reaches down with its claw open so the claw hangs right over him, fingers flexing, jaw working, and Yellow crosses his arms over his face and trembles. Shots: a side tracking shot with the monster coming in from the right; a low shot behind his feet so he falls toward the lens with a landing shake; from the ground behind his head with the monster coming at the lens, each stomp thumping the camera; a side shot of the reach; and a low shot from the monster's side of his face and crossed arms with the claw coming down between.
+- `render_draft2.py` now renders to frame 1080 with the new cues: Yellow's landing thump, ten stomps, and a low growl. It keeps the raw render, and `--from N` renders only frames N onward and splices them onto it, so a new beat no longer means re-rendering everything.
+
+### Fixed
+- The crate builder baked the part sizes with a scale apply, which zeroed every part's location and its stored rest transform, so in the burst the base flew apart with the rest. Sizes are now baked into the mesh directly; the base stays and the monster stands on it.
+
 ## 2026-09-07 - Draft 2, beat 4: the crate and the monster
 
 ### Added

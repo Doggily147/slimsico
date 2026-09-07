@@ -35,6 +35,7 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `rig_utils.py` - shared helpers for the animation scripts: keying with explicit interpolation, a parent-aware bone aimer, and a ground clamp that keeps the body's lowest point on the floor.
 - `build_draft2.py` - draft 2 animation on the main scene (the peaceful plate, a sound from above, the camera finds Yellow tumbling far up in the sky and follows him down to a belly-flop landing).
 - `build_draft2_beat4.py` - draft 2, beat 4 (frames 497-912): the line "I will walk around to find clues", the walk, the look up at a crate falling out of the sky, the run while it lands, the turn back, the crate bursting apart and the monster rising out of it and roaring.
+- `build_draft2_beat5.py` - draft 2, beat 5 (frames 913-1080): Yellow backs away, trips over a plank and falls on his back; the monster stomps over, looms and reaches down, its claw hanging over him.
 - `build_crate.py` - one big breakable wooden crate; every part is parented to the `Crate` empty and remembers its rest transform.
 - `build_monster.py` - the monster: a big rigged beast built with the same one-mesh Skin technique as Yellow (tusks, horns, claws, spikes, glowing eyes).
 - `render_draft2.py` - renders draft 2 headless and mixes the sound (wind bed, the falling whistle, the splat) plus an optional music bed from `audio/ambient.*`.
@@ -82,13 +83,19 @@ ffmpeg -y -f lavfi -i color=c=0x14081f:s=540x800:r=24 -framerate 24 -i textures/
 ```
 
 Character: open `slimsico.blend` in Blender and run `build_character.py` from
-the Text editor, then `build_draft2.py` for the current draft, and `build_crate.py`, `build_monster.py` and `build_draft2_beat4.py` for beat 4 (the beat script also runs headless: `blender -b slimsico.blend --python build_draft2_beat4.py`). Finished drafts
+the Text editor, then `build_draft2.py` for the current draft, and `build_crate.py`, `build_monster.py` then `build_draft2_beat4.py` and `build_draft2_beat5.py` for beats 4 and 5 (the beat scripts also run headless: `blender -b slimsico.blend --python build_draft2_beat5.py`). Finished drafts
 are archived under `drafts/`; see `DRAFTS.md`.
 
 Draft 2 video with sound (needs ffmpeg on PATH):
 
 ```
 python render_draft2.py
+```
+
+Only a new tail (frames 913 on), spliced onto the kept raw render:
+
+```
+python render_draft2.py --from 913
 ```
 
 Office test scene (run `build_office.py` in Blender first):
