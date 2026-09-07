@@ -94,8 +94,8 @@ def attach(o, parent=None):
 def outline(w, zk, zg, zd, zt, fw):
     return [
         (0.0, zk),                                  # 0 keel
-        (0.7 * w, zk + 0.3),                        # 1 chine
-        (0.96 * w, zk + 0.9),                       # 2 strake
+        (0.72 * w, zk + 0.12),                      # 1 chine: a nearly flat underside
+        (0.96 * w, zk + 0.85),                      # 2 strake
         (w, zg),                                    # 3 gunwale
         (0.96 * w, zg + 0.3),                       # 4 rail top
         (0.9 * w, zd),                              # 5 deck side, tall
@@ -384,15 +384,17 @@ box("Windshield", (2.2, 0.05, 1.0), (0, -4.15 + 0.31, SHELF + 0.4), GLASS, rot=(
 box("ShieldFrame", (2.3, 0.08, 0.1), (0, -4.15 + 0.62, SHELF + 0.79), CHROME, rot=(math.radians(-38), 0, 0))
 
 
-def hull_strip(name, y_from, y_to, dz, height, mat):
-    """A thin emissive band that follows the deck-side line of the hull."""
+def hull_line(name, idx, y_from, y_to, dz, height, mat, inset=1.0):
+    """A thin emissive band following one of the hull's hard lines (outline
+    point `idx`) between y_from and y_to, on both sides."""
     m = bpy.data.meshes.new("Hovercraft_" + name)
     b = bmesh.new()
     prev = None
     for y, w, zk, zg, zd, zt, fw in SECTIONS:
         if y < y_from or y > y_to:
             continue
-        pts = [b.verts.new((sgn * w * 0.905, y, zd + dz + h)) for sgn in (1, -1) for h in (0.0, height)]
+        px, pz = outline(w, zk, zg, zd, zt, fw)[idx]
+        pts = [b.verts.new((sgn * px * inset, y, pz + dz + h)) for sgn in (1, -1) for h in (0.0, height)]
         if prev:
             b.faces.new((prev[0], prev[1], pts[1], pts[0]))
             b.faces.new((pts[2], pts[3], prev[3], prev[2]))
@@ -402,14 +404,16 @@ def hull_strip(name, y_from, y_to, dz, height, mat):
     o = bpy.data.objects.new("Hovercraft_" + name, m)
     o.data.materials.append(mat)
     sm = o.modifiers.new("Solidify", "SOLIDIFY")
-    sm.thickness = 0.06
+    sm.thickness = 0.07
     sm.offset = 1
     scene.collection.objects.link(o)
     return attach(o)
 
 
-hull_strip("HoodStrip", -6.0, -1.5, -0.32, 0.08, VIOLET_STRIP)          # purple line along the bow sides
-hull_strip("RearStrip", 4.5, 7.3, -0.3, 0.06, VIOLET_STRIP)             # and along the rear quarters
+NEON = material("Neon", (0.75, 0.3, 1.0), rough=0.3, emit=((0.62, 0.22, 1.0), 5.5))
+hull_line("ChineNeon", 1, -6.7, 7.3, 0.02, 0.09, NEON, inset=1.01)     # neon along both chines, full length
+hull_line("DeckNeon", 5, -6.0, -1.5, -0.32, 0.08, VIOLET_STRIP)        # and along the bow sides
+hull_line("RearNeon", 5, 4.5, 7.3, -0.3, 0.06, VIOLET_STRIP)
 # rub rail all round the gunwale, following the hull outline
 rail_mesh = bpy.data.meshes.new("Hovercraft_RubRail")
 rb = bmesh.new()
@@ -431,11 +435,55 @@ rail.data.shade_smooth()
 scene.collection.objects.link(rail)
 attach(rail)
 
+# ------------------------------------------------------------ winglets: swept fins at the rear quarters
+def fin(name, pts, thickness, loc, rot, mat):
+    """A flat fin from a 2D outline (x, y), extruded `thickness` in z."""
+    m = bpy.data.meshes.new("Hovercraft_" + name)
+    b = bmesh.new()
+    lo = [b.verts.new((x, y, -thickness / 2)) for x, y in pts]
+    hi = [b.verts.new((x, y, thickness / 2)) for x, y in pts]
+    b.faces.new(list(reversed(lo)))
+    b.faces.new(hi)
+    for i in range(len(pts)):
+        j = (i + 1) % len(pts)
+        b.faces.new((lo[i], lo[j], hi[j], hi[i]))
+    b.to_mesh(m)
+    b.free()
+    o = bpy.data.objects.new("Hovercraft_" + name, m)
+    o.location = loc
+    o.rotation_euler = rot
+    o.data.materials.append(mat)
+    bv = o.modifiers.new("Bevel", "BEVEL")
+    bv.width = 0.05
+    bv.segments = 2
+    scene.collection.objects.link(o)
+    return attach(o)
+
+
+for sgn in (-1, 1):
+    side = "L" if sgn < 0 else "R"
+    # rooted inside the hull side, swept back, canted down a little
+    fin("Wing" + side, [(0, -1.2), (sgn * 1.6, -0.1), (sgn * 2.0, 0.7), (sgn * 1.2, 1.1), (0, 1.2)], 0.14,
+        (sgn * 2.35, 4.3, 2.3), (0, math.radians(12 * sgn), 0), BLACK)
+    box("WingEdge" + side, (0.05, 0.9, 0.05), (sgn * 4.3, 4.9, 1.95), NEON, rot=(0, math.radians(12 * sgn), math.radians(-30 * sgn)))
+
 # ------------------------------------------------------------ stern: thruster bay, step, handle
 # a recessed housing in the transom with a ring nozzle and a glowing core
 box("ThrusterBay", (2.6, 0.9, 1.3), (0, 7.05, 1.9), DARK, bevel=0.06, segments=2)
 tube("Nozzle", 0.55, 0.7, 0.12, (0, 7.55, 1.9), CHROME, rot=(math.radians(90), 0, 0))
-cylinder("NozzleCore", 0.42, 0.08, (0, 7.72, 1.9), VIOLET, rot=(math.radians(90), 0, 0))
+cylinder("NozzleCore", 0.42, 0.08, (0, 7.72, 1.9), NEON, rot=(math.radians(90), 0, 0))
+glow_cone = bpy.data.meshes.new("Hovercraft_Exhaust")
+gb = bmesh.new()
+bmesh.ops.create_cone(gb, cap_ends=False, segments=32, radius1=0.42, radius2=0.2, depth=1.6)
+gb.to_mesh(glow_cone)
+gb.free()
+glow_cone.shade_smooth()
+exhaust = bpy.data.objects.new("Hovercraft_Exhaust", glow_cone)
+exhaust.location = (0, 8.55, 1.9)
+exhaust.rotation_euler = (math.radians(-90), 0, 0)
+exhaust.data.materials.append(VIOLET_SOFT)
+scene.collection.objects.link(exhaust)
+attach(exhaust)
 for s in (-1, 1):
     tube("SideNozzle%s" % ("L" if s < 0 else "R"), 0.22, 0.5, 0.06, (s * 1.0, 7.5, 1.9), DARK, rot=(math.radians(90), 0, 0), verts=20)
     cylinder("SideCore%s" % ("L" if s < 0 else "R"), 0.16, 0.06, (s * 1.0, 7.62, 1.9), VIOLET, rot=(math.radians(90), 0, 0), verts=20)
@@ -447,11 +495,13 @@ box("TailStrip", (1.9, 0.06, 0.12), (0, 7.4, 2.5), VIOLET_STRIP)
 cylinder("BowEye", 0.14, 0.4, (0, -7.0, 1.45), DARK, rot=(0, math.radians(90), 0), verts=12)
 
 # ------------------------------------------------------------ the hover: a purple pad and its light
-cylinder("HoverPad", 1.6, 0.14, (0, 0.6, -0.02), VIOLET, verts=48)
-bpy.data.objects["Hovercraft_HoverPad"].scale = (1, 2.4, 1)
-cylinder("HoverPadRim", 1.75, 0.22, (0, 0.6, 0.06), BLACK, verts=48)
-bpy.data.objects["Hovercraft_HoverPadRim"].scale = (1, 2.4, 1)
-for i, (px, py) in enumerate(((0, -3.2), (0, 0.6), (0, 4.2))):
+# two anti-grav pods under the hull, each a dark drum with a neon ring and a
+# glowing core, plus a smaller one under the bow
+for i, (px, py, r) in enumerate(((-1.7, 1.2, 0.95), (1.7, 1.2, 0.95), (0, -4.2, 0.7))):
+    cylinder("Pod%d" % i, r, 0.42, (px, py, -0.05), PANEL if False else BLACK, verts=40)
+    tube("PodRing%d" % i, r + 0.02, 0.12, 0.1, (px, py, -0.2), NEON, verts=40)
+    cylinder("PodCore%d" % i, r * 0.72, 0.06, (px, py, -0.28), VIOLET, verts=40)
+for i, (px, py) in enumerate(((-1.7, 1.2), (1.7, 1.2), (0, -4.2))):
     light = bpy.data.lights.new("Hovercraft_HoverLight%d" % i, "POINT")
     light.color = (0.6, 0.25, 1.0)
     light.energy = 260
@@ -461,7 +511,7 @@ for i, (px, py) in enumerate(((0, -3.2), (0, 0.6), (0, 4.2))):
     col.objects.link(lo)
     lo.parent = root
     lo.matrix_parent_inverse.identity()
-HOVER_Z = 2.2
+HOVER_Z = 2.7
 glow = cylinder("HoverGlow", 2.6, 0.02, (0, 0.6, -HOVER_Z + 0.05), VIOLET_SOFT, verts=48)
 glow.scale = (1, 2.2, 1)
 

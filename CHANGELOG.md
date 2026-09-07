@@ -5,6 +5,7 @@ All notable changes to slimsico. Newest first. Dates are commit dates.
 ## 2026-09-07 - Flying jetski
 
 ### Changed
+- Reads as a flying vehicle now: the V bottom is replaced by a nearly flat underside carrying two anti-grav pods (dark drums with neon rings and glowing cores) plus a smaller one under the bow, neon purple lines run the full length of both chines, swept winglets with lit edges sit at the rear quarters, the thruster core is brighter with a translucent exhaust glow, and it hovers higher, about 2.7 studs off the plate.
 - Cleaned up: the seating is one low sculpted piece (rider cushion, a backrest rising out of it, a dip, a passenger cushion and a lower rear backrest, purple tops and black sides), and the bolted-on clutter is gone: mirrors, hood vents, seat trims and backrest strips removed so nothing reads as shapes dropped onto each other.
 - Seating: the saddle is replaced by a rider seat with a padded, leaning backrest on a black frame with a light strip, and a raised passenger seat behind it with its own backrest at the stern; black trims along both.
 - Handlebars redesigned: a chamfered stem on a chrome base, a black yoke with a lit slot and chrome cap, and winged arms swept forward and angled down to purple grips with lit tips and blade-style levers.
