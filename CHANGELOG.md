@@ -5,6 +5,7 @@ All notable changes to slimsico. Newest first. Dates are commit dates.
 ## 2026-09-07 - Flying jetski
 
 ### Changed
+- Cleaned up: the seating is one low sculpted piece (rider cushion, a backrest rising out of it, a dip, a passenger cushion and a lower rear backrest, purple tops and black sides), and the bolted-on clutter is gone: mirrors, hood vents, seat trims and backrest strips removed so nothing reads as shapes dropped onto each other.
 - Seating: the saddle is replaced by a rider seat with a padded, leaning backrest on a black frame with a light strip, and a raised passenger seat behind it with its own backrest at the stern; black trims along both.
 - Handlebars redesigned: a chamfered stem on a chrome base, a black yoke with a lit slot and chrome cap, and winged arms swept forward and angled down to purple grips with lit tips and blade-style levers.
 - The console is one integrated dash housing that rises out of the hood: a hologram projector set into its front shelf (chrome ring, purple emitter disc, a faint light cone and a slowly turning wireframe globe with a bright core), a screen block rising behind and above it with the display angled up at the rider, the handlebar stem anchored into the back of the shelf on a chrome base, mirrors on arms bolted to the housing sides, and the windshield frame seated on the housing's front lip. Nothing floats.

@@ -267,37 +267,39 @@ def tube(name, radius, depth, thickness, loc, mat, rot=(0, 0, 0), verts=40):
     return attach(o)
 
 
-# ------------------------------------------------------------ seats: rider seat with a backrest, passenger seat behind
-def cushion(name, y0, y1, w, top, base, p=3.6):
-    """A flat-topped padded cushion between y0 and y1."""
-    ln = y1 - y0
-    secs = [(y0, w * 0.35, 0.12, 0.35, base + 0.2), (y0 + 0.35, w * 0.85, top - base - 0.25, 0.4, base + 0.25),
-            (y0 + ln * 0.35, w, top - base - 0.2, 0.4, base + 0.2), (y1 - ln * 0.3, w, top - base - 0.2, 0.4, base + 0.2),
-            (y1 - 0.35, w * 0.85, top - base - 0.25, 0.4, base + 0.25), (y1, w * 0.35, 0.12, 0.35, base + 0.2)]
-    return loft(name, secs, PURPLE, p=p, crease_amount=0.5)
-
-
-def backrest(name, y, w, z0, z1, lean, thick=0.45):
-    """A padded backrest panel on a black frame, leaning back by `lean` degrees."""
-    h = z1 - z0
-    zc = (z0 + z1) / 2
-    yc = y + math.sin(math.radians(lean)) * h / 2
-    box(name + "Frame", (w + 0.2, thick, h + 0.15), (0, yc, zc), BLACK, rot=(math.radians(-lean), 0, 0), bevel=0.08, segments=3)
-    box(name + "Pad", (w - 0.1, 0.3, h - 0.25), (0, yc - thick / 2 - 0.05, zc + 0.05), PURPLE, rot=(math.radians(-lean), 0, 0), bevel=0.12, segments=4)
-    box(name + "Light", (w * 0.7, 0.05, 0.07), (0, yc + thick / 2 + 0.01, zc + h / 2 - 0.1), VIOLET_STRIP, rot=(math.radians(-lean), 0, 0))
-
-
-cushion("RiderSeat", -1.5, 2.3, 1.0, 4.45, 3.35)
-backrest("RiderBack", 2.45, 1.9, 3.5, 5.0, 16)
-cushion("PassengerSeat", 3.0, 5.4, 0.95, 4.65, 3.5)          # a step up behind the rider
-backrest("PassengerBack", 5.55, 1.7, 3.6, 4.9, 20, thick=0.4)
-for s in (-1, 1):
-    box("SeatTrim%s" % ("L" if s < 0 else "R"), (0.12, 3.6, 0.3), (s * 1.0, 0.4, 3.45), BLACK, bevel=0.03, segments=2)
-    box("SeatTrim2%s" % ("L" if s < 0 else "R"), (0.12, 2.2, 0.3), (s * 0.95, 4.2, 3.6), BLACK, bevel=0.03, segments=2)
+# ------------------------------------------------------------ seating: one sculpted piece
+# Rider cushion, a backrest rising out of it, a dip, the passenger cushion
+# and a lower rear backrest, all one continuous surface. Purple on the top
+# faces, black on the sides, with the cushion edges creased.
+SEAT = [
+    (-1.6, 0.3, 0.1, 0.5, 3.3),
+    (-1.1, 0.85, 0.5, 0.6, 3.35),
+    (0.2, 0.98, 0.6, 0.6, 3.38),
+    (1.9, 0.98, 0.6, 0.6, 3.38),
+    (2.3, 0.95, 0.9, 0.6, 3.48),
+    (2.55, 0.9, 1.2, 0.6, 3.55),                 # rider backrest
+    (2.8, 0.86, 1.15, 0.6, 3.55),
+    (3.05, 0.9, 0.7, 0.6, 3.5),
+    (3.6, 0.95, 0.75, 0.6, 3.45),                # passenger cushion, a step up
+    (5.0, 0.95, 0.75, 0.6, 3.45),
+    (5.35, 0.9, 1.0, 0.6, 3.5),                  # rear backrest
+    (5.6, 0.8, 0.95, 0.6, 3.5),
+    (5.85, 0.5, 0.45, 0.5, 3.4),
+    (6.0, 0.2, 0.1, 0.4, 3.35),
+]
+seat = loft("Seat", SEAT, PURPLE, p=3.6, crease_amount=0.6)
+seat.data.materials.append(BLACK)
+sb = bmesh.new()
+sb.from_mesh(seat.data)
+sb.normal_update()
+for f in sb.faces:
+    f.material_index = 0 if abs(f.normal.z) > 0.35 else 1      # tops purple, sides black
+sb.to_mesh(seat.data)
+sb.free()
 # footwell mats: ribbed rubber strips either side of the seat
 for s in (-1, 1):
-    for k in range(6):
-        box("Mat%s%d" % ("L" if s < 0 else "R", k), (0.9, 0.55, 0.05), (s * 1.75, -1.0 + k * 1.05, 2.42), MAT, bevel=0.015, segments=1)
+    for k in range(5):
+        box("Mat%s%d" % ("L" if s < 0 else "R", k), (0.9, 0.6, 0.05), (s * 1.75, -0.8 + k * 1.15, 2.42), MAT, bevel=0.015, segments=1)
 
 # ------------------------------------------------------------ the dash: one housing out of the hood
 # A dash housing rises out of the hood with a flat shelf. Set into the front
@@ -376,14 +378,6 @@ for s in (-1, 1):
     cylinder("Grip" + side, 0.15, 0.85, (s * 1.78, -2.3, BAR_Z - 0.16), GRIP, rot=(0, math.radians(90) + tilt, ang), verts=16)
     cylinder("GripTip" + side, 0.16, 0.08, (s * 2.2, -2.47, BAR_Z - 0.22), VIOLET_STRIP, rot=(0, math.radians(90) + tilt, ang), verts=16)
     box("Lever" + side, (0.7, 0.05, 0.14), (s * 1.7, -2.6, BAR_Z - 0.3), DARK, rot=(0, tilt, ang), bevel=0.02, segments=1)
-    # mirrors on short arms bolted to the housing sides
-    cylinder("MirrorArm" + side, 0.06, 1.1, (s * 1.55, -3.3, SHELF - 0.25), DARK, rot=(0, math.radians(90), 0), verts=8)
-    box("Mirror" + side, (0.5, 0.3, 0.34), (s * 2.05, -3.3, SHELF - 0.25), BLACK, bevel=0.06, segments=2)
-    box("MirrorGlass" + side, (0.36, 0.03, 0.22), (s * 2.05, -3.14, SHELF - 0.23), CHROME)
-    # angular intake vents on the hood sides
-    for k in range(3):
-        box("Vent%s%d" % (side, k), (0.55, 0.12, 0.06), (s * 2.1, -4.6 + k * 0.32, 3.05 + k * 0.06), RUBBER,
-            rot=(0, math.radians(-12 * s), 0))
 # windshield: its frame sits on the front lip of the housing
 box("ShieldBase", (2.3, 0.14, 0.1), (0, -4.15, SHELF - 0.02), CHROME)
 box("Windshield", (2.2, 0.05, 1.0), (0, -4.15 + 0.31, SHELF + 0.4), GLASS, rot=(math.radians(-38), 0, 0), bevel=0.02, segments=1)
