@@ -267,21 +267,33 @@ def tube(name, radius, depth, thickness, loc, mat, rot=(0, 0, 0), verts=40):
     return attach(o)
 
 
-# ------------------------------------------------------------ seat: two tiers, flat-topped, black trim
-SEAT = [
-    (-1.7, 0.25, 0.1, 0.4, 3.5),
-    (-1.2, 0.82, 0.72, 0.6, 3.6),
-    (0.0, 0.95, 0.9, 0.7, 3.66),
-    (1.8, 0.98, 0.92, 0.7, 3.7),
-    (3.0, 0.98, 0.9, 0.7, 3.7),
-    (3.3, 0.98, 1.15, 0.7, 3.75),                 # step up to the rear tier
-    (4.6, 0.95, 1.1, 0.7, 3.75),
-    (5.4, 0.7, 0.6, 0.6, 3.6),
-    (5.65, 0.3, 0.15, 0.4, 3.5),
-]
-loft("Seat", SEAT, PURPLE, p=3.8, crease_amount=0.6)
+# ------------------------------------------------------------ seats: rider seat with a backrest, passenger seat behind
+def cushion(name, y0, y1, w, top, base, p=3.6):
+    """A flat-topped padded cushion between y0 and y1."""
+    ln = y1 - y0
+    secs = [(y0, w * 0.35, 0.12, 0.35, base + 0.2), (y0 + 0.35, w * 0.85, top - base - 0.25, 0.4, base + 0.25),
+            (y0 + ln * 0.35, w, top - base - 0.2, 0.4, base + 0.2), (y1 - ln * 0.3, w, top - base - 0.2, 0.4, base + 0.2),
+            (y1 - 0.35, w * 0.85, top - base - 0.25, 0.4, base + 0.25), (y1, w * 0.35, 0.12, 0.35, base + 0.2)]
+    return loft(name, secs, PURPLE, p=p, crease_amount=0.5)
+
+
+def backrest(name, y, w, z0, z1, lean, thick=0.45):
+    """A padded backrest panel on a black frame, leaning back by `lean` degrees."""
+    h = z1 - z0
+    zc = (z0 + z1) / 2
+    yc = y + math.sin(math.radians(lean)) * h / 2
+    box(name + "Frame", (w + 0.2, thick, h + 0.15), (0, yc, zc), BLACK, rot=(math.radians(-lean), 0, 0), bevel=0.08, segments=3)
+    box(name + "Pad", (w - 0.1, 0.3, h - 0.25), (0, yc - thick / 2 - 0.05, zc + 0.05), PURPLE, rot=(math.radians(-lean), 0, 0), bevel=0.12, segments=4)
+    box(name + "Light", (w * 0.7, 0.05, 0.07), (0, yc + thick / 2 + 0.01, zc + h / 2 - 0.1), VIOLET_STRIP, rot=(math.radians(-lean), 0, 0))
+
+
+cushion("RiderSeat", -1.5, 2.3, 1.0, 4.45, 3.35)
+backrest("RiderBack", 2.45, 1.9, 3.5, 5.0, 16)
+cushion("PassengerSeat", 3.0, 5.4, 0.95, 4.65, 3.5)          # a step up behind the rider
+backrest("PassengerBack", 5.55, 1.7, 3.6, 4.9, 20, thick=0.4)
 for s in (-1, 1):
-    box("SeatTrim%s" % ("L" if s < 0 else "R"), (0.12, 6.4, 0.34), (s * 0.98, 1.95, 3.4), BLACK, bevel=0.03, segments=2)
+    box("SeatTrim%s" % ("L" if s < 0 else "R"), (0.12, 3.6, 0.3), (s * 1.0, 0.4, 3.45), BLACK, bevel=0.03, segments=2)
+    box("SeatTrim2%s" % ("L" if s < 0 else "R"), (0.12, 2.2, 0.3), (s * 0.95, 4.2, 3.6), BLACK, bevel=0.03, segments=2)
 # footwell mats: ribbed rubber strips either side of the seat
 for s in (-1, 1):
     for k in range(6):
@@ -347,15 +359,23 @@ box("Screen", (1.45, 0.03, 0.76), (0, -2.55 + 0.29, SHELF + 0.4), SCREEN, rot=(m
 for i in range(3):                                                    # readout bars on the screen
     box("Readout%d" % i, (0.3 + 0.28 * i, 0.02, 0.06), (-0.5 + 0.05 * i, -2.55 + 0.305 - 0.09 * i, SHELF + 0.62 - i * 0.17), VIOLET_STRIP,
         rot=(math.radians(28), 0, 0))
-# handlebars anchored into the back of the shelf
-cylinder("BarStem", 0.14, 0.75, (0, -1.98, SHELF + 0.25), DARK, rot=(math.radians(-22), 0, 0), verts=14)
-cylinder("StemBase", 0.24, 0.12, (0, -2.08, SHELF + 0.02), CHROME, verts=20)
-cylinder("BarCross", 0.1, 3.4, (0, -1.85, SHELF + 0.62), DARK, rot=(0, math.radians(90), 0), verts=14)
-cylinder("BarClamp", 0.18, 0.5, (0, -1.85, SHELF + 0.62), CHROME, rot=(0, math.radians(90), 0), verts=14)
+# handlebars anchored into the back of the shelf: a chamfered stem and yoke
+# with winged grips angled out and forward, lit tips and a lit slot
+cylinder("StemBase", 0.26, 0.12, (0, -2.08, SHELF + 0.02), CHROME, verts=8)
+box("BarStem", (0.26, 0.26, 0.8), (0, -2.0, SHELF + 0.36), DARK, rot=(math.radians(-22), 0, 0), bevel=0.05, segments=2)
+BAR_Z = SHELF + 0.74
+box("Yoke", (1.1, 0.55, 0.32), (0, -1.86, BAR_Z), BLACK, bevel=0.07, segments=3)
+box("YokeSlot", (0.7, 0.04, 0.08), (0, -2.14, BAR_Z + 0.02), VIOLET_STRIP)
+box("YokeCap", (0.5, 0.35, 0.06), (0, -1.86, BAR_Z + 0.19), CHROME, bevel=0.02, segments=1)
 for s in (-1, 1):
     side = "L" if s < 0 else "R"
-    cylinder("Grip" + side, 0.15, 0.9, (s * 1.35, -1.85, SHELF + 0.62), GRIP, rot=(0, math.radians(90), 0), verts=14)
-    cylinder("Lever" + side, 0.05, 0.9, (s * 1.3, -2.2, SHELF + 0.52), DARK, rot=(0, math.radians(90), 0), verts=8)
+    # each wing: an angled arm out of the yoke, then a grip, then a lit tip
+    ang = math.radians(-24 * s)                       # swept forward
+    tilt = math.radians(8 * s)                        # tips a little lower than the yoke
+    box("BarArm" + side, (1.0, 0.16, 0.16), (s * 0.95, -1.98, BAR_Z - 0.04), DARK, rot=(0, tilt, ang), bevel=0.04, segments=2)
+    cylinder("Grip" + side, 0.15, 0.85, (s * 1.78, -2.3, BAR_Z - 0.16), GRIP, rot=(0, math.radians(90) + tilt, ang), verts=16)
+    cylinder("GripTip" + side, 0.16, 0.08, (s * 2.2, -2.47, BAR_Z - 0.22), VIOLET_STRIP, rot=(0, math.radians(90) + tilt, ang), verts=16)
+    box("Lever" + side, (0.7, 0.05, 0.14), (s * 1.7, -2.6, BAR_Z - 0.3), DARK, rot=(0, tilt, ang), bevel=0.02, segments=1)
     # mirrors on short arms bolted to the housing sides
     cylinder("MirrorArm" + side, 0.06, 1.1, (s * 1.55, -3.3, SHELF - 0.25), DARK, rot=(0, math.radians(90), 0), verts=8)
     box("Mirror" + side, (0.5, 0.3, 0.34), (s * 2.05, -3.3, SHELF - 0.25), BLACK, bevel=0.06, segments=2)
