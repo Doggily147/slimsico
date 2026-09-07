@@ -2,7 +2,12 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
-## 2026-09-07 - Hovercraft
+## 2026-09-07 - Hover-jetski
+
+### Changed
+- The hovercraft is redesigned as a flying-car style hover-jetski: a lofted dark-grey metallic hull with a pointed nose (built from squircle cross-sections and subdivided), a saddle seat and chrome handlebars, a low cowl with a raked tinted screen, swept side sponsons with cyan light strips, twin rear thrusters with glowing cores and chrome rings, a swept tail fin with a light, a red tail strip, cyan side strips, a nose light and panel grooves. Three repulsor pads underneath glow and carry point lights that light the plate, with a faint glow disc at ground level. It hovers two studs up with a gentle bob and sway keyed across the scene.
+
+## 2026-09-07 - Hovercraft (first pass, replaced)
 
 ### Added
 - `build_hovercraft.py`: a stylised hovercraft prop, 16 by 9 studs. A bevelled teal hull with a rounded nose on a fat rubber skirt with a rubbing strake, an open cockpit (seat, dashboard with a lit screen, steering yoke, raked tinted windscreen in a steel frame, roll bar), a raised rear deck carrying a big ducted six-blade fan with an orange lip, a front grille and twin orange rudders, twin intake pods, headlights and tail lights, white and orange racing stripes, side flashes and the number 07. Everything hangs off the "Hovercraft" empty; the blades hang off "HovercraftFan" so they can spin.
