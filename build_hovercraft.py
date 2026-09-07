@@ -497,14 +497,16 @@ cylinder("BowEye", 0.14, 0.4, (0, -7.0, 1.45), DARK, rot=(0, math.radians(90), 0
 # ------------------------------------------------------------ the hover: a purple pad and its light
 # two anti-grav pods under the hull, each a dark drum with a neon ring and a
 # glowing core, plus a smaller one under the bow
-for i, (px, py, r) in enumerate(((-1.7, 1.2, 0.95), (1.7, 1.2, 0.95), (0, -4.2, 0.7))):
+PODS = ((-1.55, -2.4, 0.7), (1.55, -2.4, 0.7), (-1.85, 0.9, 0.85), (1.85, 0.9, 0.85),
+        (-1.5, 4.1, 0.7), (1.5, 4.1, 0.7), (0, -5.3, 0.5))
+for i, (px, py, r) in enumerate(PODS):
     cylinder("Pod%d" % i, r, 0.42, (px, py, -0.05), PANEL if False else BLACK, verts=40)
     tube("PodRing%d" % i, r + 0.02, 0.12, 0.1, (px, py, -0.2), NEON, verts=40)
     cylinder("PodCore%d" % i, r * 0.72, 0.06, (px, py, -0.28), VIOLET, verts=40)
-for i, (px, py) in enumerate(((-1.7, 1.2), (1.7, 1.2), (0, -4.2))):
+for i, (px, py, r) in enumerate(PODS):
     light = bpy.data.lights.new("Hovercraft_HoverLight%d" % i, "POINT")
     light.color = (0.6, 0.25, 1.0)
-    light.energy = 260
+    light.energy = 110
     light.shadow_soft_size = 0.8
     lo = bpy.data.objects.new("Hovercraft_HoverLight%d" % i, light)
     lo.location = (px, py, -0.4)
