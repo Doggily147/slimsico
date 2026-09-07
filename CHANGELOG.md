@@ -2,6 +2,17 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-07 - Draft 2, beat 4: the crate and the monster
+
+### Added
+- `build_monster.py`: a big monster built the same way as Yellow (one connected Skin-modifier body from a joint skeleton, subdivided, with a generated armature) so it lives in the same world. About 12 studs tall: a broad chest, heavy muzzle with an underbite and two tusks, six teeth, nostrils, small curved horns, glowing amber eyes with slit pupils, long gorilla arms with three claws each, short thick legs with clawed feet, a thick tail and a row of spikes down the back. Deep teal skin with a paler belly and a little bump. Bones are named like Yellow's (plus `jaw`, `snout`, `tail.001-003`) so the same Poser drives it.
+- `build_crate.py`: one big breakable crate (7.5 studs): corner posts, six slats a side, base and lid boards, diagonal braces, iron corner brackets and bolts, all parented to the `Crate` empty and each remembering its resting transform so the beat script can scatter them.
+- `build_draft2_beat4.py` (frames 497-912): Yellow turns to face front and says "I will walk around to find clues" (talking mouth per syllable, a hand-up then point-across gesture, head level), walks off, hears a whistle and stops; the camera drops behind his shoulder with a wide lens and tilts up to a crate falling out of the sky, his crown at the bottom of frame, following it down. He turns and runs (arm swing, lean, ground clamp) and the crate slams down where he stood while he is still running, with a camera shake, in one wide side shot that holds both. He slows, stops, turns around and sees it. The crate creaks and shudders, then bursts: every part above the base flies out from the centre, tumbles under gravity and lands on the plate; the base stays. The monster is inside, crouched and folded small, and unfolds to its full height over two seconds, then rears back and roars with its jaw wide, arms up and a tremor through it, and settles into a hunched, jaw-open stance, breathing, tail swaying. Yellow flinches back with his arms up and keeps his eyes on it. Shots: the line (medium front), the walk (side tracking), the look-up (low, behind, wide lens), the run (wide side), the stop and turn (medium), over his shoulder for the burst and the rise, a low angle up at the roar, and a wide two-shot to end.
+- `render_draft2.py` now renders to frame 912 with the new subtitle and cues: the crate's falling whistle, a heavy wooden slam, the creak, the splintering crash and the roar, all synthesised.
+
+### Changed
+- The parked jetski is hidden from render for this beat (it is not in the story yet).
+
 ## 2026-09-07 - Flying jetski
 
 ### Added

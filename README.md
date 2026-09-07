@@ -34,6 +34,9 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `build_character.py` - run inside Blender with the scene open: builds the crowned character as one connected Skin-modifier mesh with subdivision and an auto-generated armature (`CharacterRig`), and switches the baseplate to the numbered grid texture.
 - `rig_utils.py` - shared helpers for the animation scripts: keying with explicit interpolation, a parent-aware bone aimer, and a ground clamp that keeps the body's lowest point on the floor.
 - `build_draft2.py` - draft 2 animation on the main scene (the peaceful plate, a sound from above, the camera finds Yellow tumbling far up in the sky and follows him down to a belly-flop landing).
+- `build_draft2_beat4.py` - draft 2, beat 4 (frames 497-912): the line "I will walk around to find clues", the walk, the look up at a crate falling out of the sky, the run while it lands, the turn back, the crate bursting apart and the monster rising out of it and roaring.
+- `build_crate.py` - one big breakable wooden crate; every part is parented to the `Crate` empty and remembers its rest transform.
+- `build_monster.py` - the monster: a big rigged beast built with the same one-mesh Skin technique as Yellow (tusks, horns, claws, spikes, glowing eyes).
 - `render_draft2.py` - renders draft 2 headless and mixes the sound (wind bed, the falling whistle, the splat) plus an optional music bed from `audio/ambient.*`.
 - `build_hovercraft.py` - a flying jetski for Yellow modelled after a small runabout, sharp and futuristic: one hull mesh from cross-sections with every hard line creased (keel, chine, strake, gunwale, rail, deck side, footwell rims), painted purple hood, black hull and rear, white bow sides; footwells with mats, one sculpted two-seat unit with backrests, an integrated dash with a hologram projector and a floating holographic hover-screen behind it showing the animated HUD from `make_hud.py`, windshield, winged handlebars, light strips, rub rail, a thruster bay at the stern with glowing nozzles, boarding step; anti-grav pods with neon rings underneath that light the ground, neon chine lines and winglets; hovers with a gentle bob.
 - `make_hud.py` - the hover-screen as a working device UI (craft name NIMBUS): a phone-like home screen with a live speed widget, app grid and dock, and thirteen animated app screens (Drive, Map, Messages with a typing keyboard, Calls, Music, Camera, Photos, Weather, Notes, Shop, Settings, Games, Lock) whose buttons all work. Renders a timeline of taps and typing to an image sequence: the idle loop to `textures/hud/`, `python make_hud.py demo` to `textures/hud_demo/`; story scripts call `render(events, out_dir, frames)`. Needs Pillow.
@@ -47,6 +50,7 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `renders/hovercraft.png` - viewport shot of the flying jetski.
 - `renders/hovercraft_dash.png` - the rider's view of the dash, hologram and hover-screen.
 - `renders/hover_screen_demo.mp4` - the hover-screen demo: every app opened and used.
+- `renders/monster.png`, `renders/monster_rise.png` - the monster roaring, and rising out of the burst crate.
 - `CHANGELOG.md` - full history of changes.
 - `DRAFTS.md` - the draft log; each finished draft is archived under `drafts/` and tagged.
 
@@ -78,7 +82,7 @@ ffmpeg -y -f lavfi -i color=c=0x14081f:s=540x800:r=24 -framerate 24 -i textures/
 ```
 
 Character: open `slimsico.blend` in Blender and run `build_character.py` from
-the Text editor, then `build_draft2.py` for the current draft. Finished drafts
+the Text editor, then `build_draft2.py` for the current draft, and `build_crate.py`, `build_monster.py` and `build_draft2_beat4.py` for beat 4 (the beat script also runs headless: `blender -b slimsico.blend --python build_draft2_beat4.py`). Finished drafts
 are archived under `drafts/`; see `DRAFTS.md`.
 
 Draft 2 video with sound (needs ffmpeg on PATH):
