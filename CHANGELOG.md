@@ -2,6 +2,11 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-08 - Purple: plain katanas
+
+### Changed
+- The binary etching and the glowing pommel gems are gone, and the blades are polished steel instead of green: two normal katanas, same shape and carry.
+
 ## 2026-09-08 - Purple: debug katanas, tip-down
 
 ### Changed
