@@ -27,6 +27,14 @@ comfortable to use in a professional animated series:
 
 Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 
+## Workflow
+
+- **Animation is done with scripts.** Every beat is a `build_draft2_beatN.py` script run headless, with a few check frames rendered along the way, then the blend is saved and reopened in Blender to scrub. The Blender MCP bridge is only for modelling and quick viewport checks: it drops its connection on anything that runs longer than a minute or two, and a beat pass takes several minutes.
+- Run `git pull` before starting work and push when you stop. Two people work on this repo.
+- `slimsico.blend` is binary and cannot be merged: take turns on it, or split the work so one person has the blend while the other works on scripts and renders.
+- A beat pass is slow because every frame the script touches re-evaluates the monster, the crate debris and the jetski. Turn their subdivision down while keying and restore it before saving.
+- Render one beat for review with `python render_draft2.py --clip A B`; the full render is about an hour.
+
 ## Files
 
 - `build_scene.py` - builds the whole scene from an empty file, saves `slimsico.blend`, and renders `renders/scene.png`.
