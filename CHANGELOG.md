@@ -2,6 +2,12 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-08 - Purple: debug katanas, tip-down
+
+### Changed
+- The two swords are now katanas: a curved single-edged blade with a ridge, a bright edge and an angled tip, a pierced round guard, a collar, a criss-cross wrapped grip over a pale under-wrap, an end cap with a small glowing gem, and binary etched on both flats. They hang tip-down across his back with the grips up over the shoulders.
+- Checked Purple's head against Yellow's at rest with the same camera: it is the same mesh (a clone of Yellow's body), so no shape change was made.
+
 ## 2026-09-08 - Purple: plain hands and feet, Yellow's face, straight mouth
 
 ### Changed
