@@ -2,7 +2,13 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
-## 2026-09-08 - Purple
+## 2026-09-08 - Purple, second pass: modelled by hand
+
+### Changed
+- Purple is now modelled live in Blender through the Blender MCP (ahujasid/blender-mcp, addon auto-starts with the file) instead of a build script, and lives only in the blend. `build_purple.py` is removed. Gone: the mask band, the hood peak, the chest core and its ring, the shoulder shards, the tube strap and belt. New: a real face like Yellow's (the big round eyes kept, a smile stroke and two angled brows on the head bone); a flat leather shoulder strap built as a ribbon of ray-cast samples that hugs the body, running over the right shoulder ball, across the chest to the left hip and up the back; a flat belt with a brass buckle and pin; a leather gear pouch with a flap and clasp on the left hip; and two proper swords crossed on the back with the grips at the belt: hexagonal-section blades tapering to a point with the sharp edges in a bright material, glowing binary etched on both flat faces, a bevelled crossguard with ball ends and a collar, a ring-wrapped grip, a pommel with a glowing gem.
+- Lesson kept for the strap: cast the sample rays from just outside the waist, not from far away, or they hit the hanging hands; and do not shrinkwrap a band that passes the hips, it snaps to the thighs.
+
+## 2026-09-08 - Purple (first pass, replaced)
 
 ### Added
 - `build_purple.py`: Purple, built from the drawing. Yellow's one-mesh body and rig are cloned (`rig_utils.clone_character`) and tinted purple so the two share proportions and every animation script drives him unchanged. On top: dark glove and boot shells on the hand and foot bones; two big round black eyes with catchlights over a dark mask band sunk into the head, and a soft hood peak; a brown strap that follows the body surface from the right shoulder across the chest to the left hip and round the back, a belt with a brass buckle; a glowing green nanobot core in an eight-sided ring on the chest where the strap crosses; six green nanobot shards standing on each shoulder; and two green blades on the back, crossed with the grips at the belt, each stamped with glowing binary down both faces. He is built at the origin facing -Y in his own "Purple" collection, hidden from render until the story needs him. `--still` renders `renders/purple.png` and `renders/purple_back.png` with everything else hidden; `--save` writes the blend.

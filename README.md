@@ -36,7 +36,7 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `build_draft2.py` - draft 2 animation on the main scene (the peaceful plate, a sound from above, the camera finds Yellow tumbling far up in the sky and follows him down to a belly-flop landing).
 - `build_draft2_beat4.py` - draft 2, beat 4 (frames 497-912): the line "I will walk around to find clues", the walk, the look up at a crate falling out of the sky, the run while it lands, the turn back, the crate bursting apart and the monster rising out of it and roaring.
 - `build_draft2_beat5.py` - draft 2, beat 5 (frames 913-1080): Yellow backs away, trips over a plank and falls on his back; the monster stomps over, looms and reaches down, its claw hanging over him.
-- `build_purple.py` - Purple, from the drawing: Yellow's rig cloned and tinted purple, dark gloves and boots, a hood with two big round eyes over a mask, a brown strap from the right shoulder across the chest to the left hip plus a belt and buckle, a glowing green nanobot core on the chest, green nanobot shards on both shoulders, and two green blades stamped with binary crossed on his back. Everything is bone-parented so the same animation scripts drive him. Built at the origin and hidden from render until the story needs him (the "Purple" collection). Headless: `blender -b slimsico.blend -S Scene --python build_purple.py -- --still --save`.
+- **Purple** lives in `slimsico.blend` (the "Purple" collection), modelled by hand in Blender through the Blender MCP rather than by a script: Yellow's rig cloned and tinted purple, a real face (big round eyes, a smile, brows), dark gloves and boots, a flat leather shoulder strap over the right shoulder ball and across the chest, a belt with a brass buckle and a gear pouch on the left hip, and two crossed swords on the back: hexagonal-section green blades with bright edges and glowing binary etched on both faces, a crossguard with ball ends, a wrapped grip and a gem pommel. Everything is bone-parented so the animation scripts drive him unchanged. Hidden from render until the story needs him.
 - `build_crate.py` - one big breakable wooden crate; every part is parented to the `Crate` empty and remembers its rest transform.
 - `build_monster.py` - the monster: a big rigged beast built with the same one-mesh Skin technique as Yellow (tusks, horns, claws, spikes, glowing eyes).
 - `render_draft2.py` - renders draft 2 headless and mixes the sound (wind bed, the falling whistle, the splat) plus an optional music bed from `audio/ambient.*`.
@@ -53,7 +53,7 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `renders/hovercraft_dash.png` - the rider's view of the dash, hologram and hover-screen.
 - `renders/hover_screen_demo.mp4` - the hover-screen demo: every app opened and used.
 - `renders/monster.png`, `renders/monster_rise.png` - the monster roaring, and rising out of the burst crate.
-- `renders/purple.png`, `renders/purple_back.png` - Purple from the front and from behind (the blades).
+- `renders/purple.png`, `renders/purple_back.png` - Purple from the front and from behind (the swords).
 - `CHANGELOG.md` - full history of changes.
 - `DRAFTS.md` - the draft log; each finished draft is archived under `drafts/` and tagged.
 
