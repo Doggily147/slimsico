@@ -486,8 +486,8 @@ for f in range(F_SWOOP, F_ARRIVE + 1):
 for f in (F_ARRIVE + 1, F_WHO - 1):
     cam_key(f, (RX + 5.5, SY + 12.5, 4.8), (RX - 4.4, SY + 0.9, 4.6), 30)
 # "Who are you?": his face, from above his feet, the hand hanging in at the top
-for f in (F_WHO, F_SIT - 1):
-    cam_key(f, (RX + 3.6, SY - 5.4, 3.9), (RX - 0.6, SY + 1.6, 2.9), 42)
+for f in (F_WHO, F_SIT - 1):                              # (the monster stands at SY - 5.4: stay this side of it)
+    cam_key(f, (RX + 2.8, SY - 3.4, 3.7), (RX - 0.6, SY + 1.6, 2.9), 40)
 # he sits up and grabs it: a two-shot from behind his head
 for f in (F_SIT, F_LIFT - 1):
     cam_key(f, (RX + 2.4, SY + 9.0, 3.4), (RX - 2.6, SY + 0.6, 3.6), 30)
