@@ -2,6 +2,13 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-08 - Beat 6: the haul, and the crate cleared
+
+### Changed
+- The haul is a struggle now: Purple gets his second hand on Yellow's wrist and heaves twice, leaning back into each pull; Yellow comes up in jerks, knees scrabbling at the hull, free hand grabbing for the rail, then is dragged belly-first over the side, flops across the passenger seat and pushes himself up to sitting. Every heave lifts him because he is hand-locked to Purple's hands.
+- The camera is on it: a tight low shot from the front quarter with a little handheld shake (his face looking up, Purple heaving above), then over the stern for the flop and the sit-up.
+- The burst crate's wood is cleared away for this beat (keyed, so beats 4-5 keep it).
+
 ## 2026-09-08 - Beat 6 fixes
 
 ### Fixed
