@@ -36,6 +36,7 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `build_draft2.py` - draft 2 animation on the main scene (the peaceful plate, a sound from above, the camera finds Yellow tumbling far up in the sky and follows him down to a belly-flop landing).
 - `build_draft2_beat4.py` - draft 2, beat 4 (frames 497-912): the line "I will walk around to find clues", the walk, the look up at a crate falling out of the sky, the run while it lands, the turn back, the crate bursting apart and the monster rising out of it and roaring.
 - `build_draft2_beat5.py` - draft 2, beat 5 (frames 913-1080): Yellow backs away, trips over a plank and falls on his back; the monster stomps over, looms and reaches down, its claw hanging over him.
+- `build_draft2_beat6.py` - draft 2, beat 6 (frames 1081-1656): Purple swoops in from the sky on the jetski, hovers beside Yellow and holds out his hand; "Who are you?"; Yellow grabs it and dangles as the jetski lifts and climbs, an insert on the slipping grip, the slip, Purple's one-handed catch, the haul up onto the passenger seat, then "Where are we going?", three seconds, "Hello, are you going to answer me?", "You're not much of a talker, are you?". Purple never speaks. Runs after beat 5 with Purple in the scene.
 - **Purple** lives in `slimsico.blend` (the "Purple" collection), modelled by hand in Blender through the Blender MCP rather than by a script: Yellow's rig cloned and tinted purple, Yellow's own face with a straight mouth instead of the smile, a flat leather shoulder strap over the right shoulder ball and across the chest, a belt with a brass buckle and a gear pouch on the left hip, and two katanas carried tip-down across his back: curved single-edged polished-steel blades with a ridge, a bright edge and an angled tip, a pierced round iron guard, a black criss-cross wrapped grip over a pale under-wrap, and an iron end cap. Everything is bone-parented so the animation scripts drive him unchanged. Hidden from render until the story needs him.
 - `build_crate.py` - one big breakable wooden crate; every part is parented to the `Crate` empty and remembers its rest transform.
 - `build_monster.py` - the monster: a big rigged beast built with the same one-mesh Skin technique as Yellow (tusks, horns, claws, spikes, glowing eyes).
@@ -85,7 +86,7 @@ ffmpeg -y -f lavfi -i color=c=0x14081f:s=540x800:r=24 -framerate 24 -i textures/
 ```
 
 Character: open `slimsico.blend` in Blender and run `build_character.py` from
-the Text editor, then `build_draft2.py` for the current draft, and `build_crate.py`, `build_monster.py` then `build_draft2_beat4.py` and `build_draft2_beat5.py` for beats 4 and 5 (the beat scripts also run headless: `blender -b slimsico.blend --python build_draft2_beat5.py`). Finished drafts
+the Text editor, then `build_draft2.py` for the current draft, and `build_crate.py`, `build_monster.py` then `build_draft2_beat4.py`, `build_draft2_beat5.py` and `build_draft2_beat6.py` for beats 4 to 6 (`build_crate.py` clears the whole Props collection, so run `build_hovercraft.py` after it; beat 6 needs the jetski) (the beat scripts also run headless: `blender -b slimsico.blend --python build_draft2_beat5.py`). Finished drafts
 are archived under `drafts/`; see `DRAFTS.md`.
 
 Draft 2 video with sound (needs ffmpeg on PATH):

@@ -19,13 +19,16 @@ MUSIC = next((p for p in (os.path.join(ROOT, "audio", "ambient" + ext) for ext i
               if os.path.exists(p)), None)
 FPS = 24
 
-# frames match build_draft2.py and build_draft2_beat4.py / beat5
-F_END = 1080
+# frames match build_draft2.py and build_draft2_beat4.py / beat5 / beat6
+F_END = 1656
 F_ADV, F_LOOM = 914, 1030
-SUBTITLES = [("Where am I?", 412, 452), ("I will walk around to find clues", 504, 558)]
+SUBTITLES = [("Where am I?", 412, 452), ("I will walk around to find clues", 504, 558),
+             ("Who are you?", 1166, 1196), ("Where are we going?", 1392, 1430),
+             ("Hello, are you going to answer me?", 1502, 1562), ("You're not much of a talker, are you?", 1578, 1636)]
 SOUND_CUES = [("wind", 1), ("whistle", 60), ("splat", 190),
               ("crate_whistle", 612), ("thud", 700), ("creak", 768), ("crash", 784), ("roar", 840),
-              ("thump", 980), ("growl", 1030)] + [("stomp", f) for f in range(F_ADV + 6, F_LOOM, 11)]
+              ("thump", 980), ("growl", 1030),
+              ("swoop", 1081), ("hover", 1118), ("lift", 1236), ("climb", 1284), ("slip", 1300), ("catch", 1306)] + [("stomp", f) for f in range(F_ADV + 6, F_LOOM, 11)]
 SOUNDS = {
     # a long, faint whistle from far above that slides down and grows as he nears
     "whistle": ("0.2*sin(2*PI*(1700-600*t/5.4)*t)*min(1\\,t/2.5)*(0.3+0.7*t/5.4)", 5.4),
@@ -47,6 +50,18 @@ SOUNDS = {
     "stomp": ("0.7*exp(-t*14)*sin(2*PI*38*t)+0.2*exp(-t*40)*(random(0)-0.5)", 0.6),
     # a low rolling growl as it looms
     "growl": ("0.55*sin(2*PI*(55+8*sin(2*PI*3*t))*t)*(1+0.4*sin(2*PI*27*t))*min(1\\,t*3)*exp(-t*0.7)", 2.5),
+    # the jetski diving in: a rising whine that doppler-drops as it passes, with wind rush
+    "swoop": ("0.45*sin(2*PI*(900+700*t/2.0-500*max(0\\,t-1.5))*t)*min(1\\,t/0.6)*(1-t/2.2)+0.35*(random(0)-0.5)*min(1\\,t)*exp(-(t-1.6)*(t-1.6)*3)", 2.2),
+    # the hover hum under the rest of the beat: a soft two-tone thrum
+    "hover": ("0.11*(sin(2*PI*92*t)+0.6*sin(2*PI*138*t))*(0.85+0.15*sin(2*PI*1.3*t))*min(1\\,t/2)", 23.0),
+    # the lift: the hum swells and a whoosh
+    "lift": ("0.5*sin(2*PI*(110+60*t)*t)*min(1\\,t/0.8)*exp(-t*0.6)+0.25*(random(0)-0.5)*exp(-(t-0.7)*(t-0.7)*4)", 2.4),
+    # climbing away: wind rush
+    "climb": ("0.3*(random(0)-0.5)*min(1\\,t/0.5)*exp(-t*1.2)", 2.0),
+    # the slip: a short squeak and a rush of air
+    "slip": ("0.35*sin(2*PI*(1400-900*t)*t)*exp(-t*12)+0.3*(random(0)-0.5)*exp(-t*6)", 0.5),
+    # the catch: a slap and a body thump
+    "catch": ("0.7*exp(-t*22)*(random(0)-0.5)+0.5*exp(-t*9)*sin(2*PI*95*t)", 0.6),
 }
 NOISE_BEDS = {
     # soft wind: pink noise, low-passed, gently breathing
@@ -56,8 +71,27 @@ NOISE_BEDS = {
 raw = os.path.join(RENDERS, "draft2_raw.mp4")
 out = os.path.join(RENDERS, "draft2.mp4")
 total = F_END / FPS
+CLIP = None
+if "--clip" in sys.argv:
+    # render and mix only frames A..B (e.g. one beat) to renders/draft2_clip_A_B.mp4,
+    # with the subtitles and cues shifted so they land at the right moment
+    i = sys.argv.index("--clip")
+    CLIP = (int(sys.argv[i + 1]), int(sys.argv[i + 2]))
+    A, B = CLIP
+    raw = os.path.join(RENDERS, "draft2_clip_raw.mp4")
+    out = os.path.join(RENDERS, "draft2_clip_%d_%d.mp4" % (A, B))
+    total = (B - A + 1) / FPS
+    SUBTITLES = [(t, a - A + 1, b - A + 1) for t, a, b in SUBTITLES if b >= A and a <= B]
+    SOUND_CUES = [(n, max(1, f - A + 1)) for n, f in SOUND_CUES if (f - A + 1) + (SOUNDS.get(n, ("", 0))[1] * FPS if n in SOUNDS else 10 ** 6) > 0 and f <= B]
+    if os.path.exists(raw):
+        os.remove(raw)
+    subprocess.run([BLENDER, "-b", os.path.join(ROOT, "slimsico.blend"), "-S", "Scene", "-s", str(A), "-e", str(B),
+                    "--python-expr", "import bpy; bpy.context.scene.render.filepath = %r" % raw.replace("\\", "/"), "-a"],
+                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
-if "--from" in sys.argv:
+if CLIP is not None:
+    pass
+elif "--from" in sys.argv:
     first = int(sys.argv[sys.argv.index("--from") + 1])
     part = os.path.join(RENDERS, "draft2_raw_part.mp4")
     head = os.path.join(RENDERS, "draft2_raw_head.mp4")

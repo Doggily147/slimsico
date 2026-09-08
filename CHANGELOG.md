@@ -2,6 +2,15 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-08 - Draft 2, beat 6: Purple
+
+### Added
+- `build_draft2_beat6.py` (frames 1081-1656): a whine from the sky and Purple dives in on the jetski at speed, flares and banks in low beside Yellow, hovering with the pods just off the plate; the monster rears back and pulls its claw away. Purple, sitting on the rider seat, leans right out and holds his hand down to Yellow. Yellow, propped on his elbows, looks from the jetski to the hand and says "Who are you?" (talking mouth). Purple says nothing; he never does. Yellow sits up, reaches, and takes the hand. The jetski lifts and turns away from the monster and Yellow dangles under Purple's hand, swung out clear of the hull, legs kicking, while it climbs. An insert rides along with the two hands as Yellow's grip creeps down Purple's hand and trembles; a wide from the ground shows them small against the sky, going higher. Yellow's hand slips and he drops; Purple's arm snaps down and catches his other wrist one-handed as the jetski lurches and dips, then he hauls Yellow up and over the side onto the passenger seat. Flying on, Yellow holds Purple's waist and asks "Where are we going?"; three seconds of nothing; "Hello, are you going to answer me?"; "You're not much of a talker, are you?" Purple gives him one slow glance and looks straight ahead again. Shots: from the ground past Yellow up at the sky, Purple leaning out, Yellow's face for the line, a two-shot over his head for the grab, the lift-off panned from the ground, the hands insert, the climb from below, alongside for the slip, catch and haul, and three riding shots ahead of, beside and in front of the jetski for the lines.
+- `render_draft2.py` renders to frame 1656 with the four new subtitles and the cues: the diving whine with wind rush, a hover hum under the rest of the beat, the lift swell, the climb rush, the slip squeak and the catch slap.
+
+### Fixed
+- The committed blend only held beats 1-3: the crate, the monster and beats 4 and 5 had never been saved into it (they were rebuilt from their scripts before beat 6). `build_crate.py` clears the whole Props collection, which deletes the jetski, so `build_hovercraft.py` now runs after it; the jetski is keyed hidden until it flies in.
+
 ## 2026-09-08 - Purple: plain katanas
 
 ### Changed

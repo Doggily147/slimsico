@@ -47,3 +47,6 @@ Beats so far:
 1. The baseplate, peaceful. A sound from above. The camera tilts up and finds Yellow far up in the sky, rolling as he falls.
 2. The fall accelerates, the camera follows him down to the plate, and he belly-flops with a squash, a bounce and a slide, then lies still.
 3. He gets up with his arms, rubs his left arm looking down at it, then the head lifts, he says "Where am I?" with a shrug and a moving mouth in a medium shot, and turns slowly as the camera pulls back to reveal the deserted plate.
+4. "I will walk around to find clues." He walks off, a crate falls out of the sky, he runs, it slams down, bursts, and the monster rises and roars.
+5. He backs away, trips over a plank, lands on his back and scoots; the monster stomps over and reaches down, its claw over him.
+6. Purple swoops in on the jetski, holds out a hand; "Who are you?"; Yellow grabs it, dangles as they climb, slips, is caught one-handed and hauled onto the seat. "Where are we going?" ... "Hello, are you going to answer me?" "You're not much of a talker, are you?" Purple never speaks.
