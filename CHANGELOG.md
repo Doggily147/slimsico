@@ -2,6 +2,11 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-08 - Purple: plain hands and feet, Yellow's face, straight mouth
+
+### Changed
+- The glove and boot shells and the brows are removed. His eyes are now exactly Yellow's (same size, tilt, sinking and catchlights) and the mouth is Yellow's stroke drawn as a straight line: a neutral face rather than a smile.
+
 ## 2026-09-08 - Purple, second pass: modelled by hand
 
 ### Changed
