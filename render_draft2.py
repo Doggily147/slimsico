@@ -24,7 +24,7 @@ F_END = 1656
 F_ADV, F_LOOM = 914, 1030
 SUBTITLES = [("Where am I?", 412, 452), ("I will walk around to find clues", 504, 558),
              ("Who are you?", 1166, 1196), ("Where are we going?", 1392, 1430),
-             ("Hello, are you going to answer me?", 1502, 1562), ("You're not much of a talker, are you?", 1578, 1636)]
+             ("Hello, are you going to answer me?", 1502, 1562), ("You’re not much of a talker, are you?", 1578, 1636)]   # a typographic apostrophe: a plain one breaks drawtext quoting
 SOUND_CUES = [("wind", 1), ("whistle", 60), ("splat", 190),
               ("crate_whistle", 612), ("thud", 700), ("creak", 768), ("crash", 784), ("roar", 840),
               ("thump", 980), ("growl", 1030),
@@ -83,11 +83,12 @@ if "--clip" in sys.argv:
     total = (B - A + 1) / FPS
     SUBTITLES = [(t, a - A + 1, b - A + 1) for t, a, b in SUBTITLES if b >= A and a <= B]
     SOUND_CUES = [(n, max(1, f - A + 1)) for n, f in SOUND_CUES if (f - A + 1) + (SOUNDS.get(n, ("", 0))[1] * FPS if n in SOUNDS else 10 ** 6) > 0 and f <= B]
-    if os.path.exists(raw):
-        os.remove(raw)
-    subprocess.run([BLENDER, "-b", os.path.join(ROOT, "slimsico.blend"), "-S", "Scene", "-s", str(A), "-e", str(B),
-                    "--python-expr", "import bpy; bpy.context.scene.render.filepath = %r" % raw.replace("\\", "/"), "-a"],
-                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    if "--no-render" not in sys.argv:
+        if os.path.exists(raw):
+            os.remove(raw)
+        subprocess.run([BLENDER, "-b", os.path.join(ROOT, "slimsico.blend"), "-S", "Scene", "-s", str(A), "-e", str(B),
+                        "--python-expr", "import bpy; bpy.context.scene.render.filepath = %r" % raw.replace("\\", "/"), "-a"],
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
 if CLIP is not None:
     pass
