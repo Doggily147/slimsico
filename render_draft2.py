@@ -28,7 +28,7 @@ SUBTITLES = [("Where am I?", 412, 452), ("I will walk around to find clues", 504
 SOUND_CUES = [("wind", 1), ("whistle", 60), ("splat", 190),
               ("crate_whistle", 612), ("thud", 700), ("creak", 768), ("crash", 784), ("roar", 840),
               ("thump", 980), ("growl", 1030),
-              ("swoop", 1081), ("hover", 1118), ("lift", 1236), ("climb", 1284), ("slip", 1300), ("catch", 1306)] + [("stomp", f) for f in range(F_ADV + 6, F_LOOM, 11)]
+              ("swoop", 1081), ("hover", 1118), ("lift", 1236), ("roar", 1248), ("climb", 1284), ("slip", 1300), ("catch", 1306)] + [("stomp", f) for f in range(F_ADV + 6, F_LOOM, 11)]
 SOUNDS = {
     # a long, faint whistle from far above that slides down and grows as he nears
     "whistle": ("0.2*sin(2*PI*(1700-600*t/5.4)*t)*min(1\\,t/2.5)*(0.3+0.7*t/5.4)", 5.4),
@@ -137,7 +137,7 @@ for name, frame in SOUND_CUES:
 n_mix = inputs - 1
 if MUSIC:
     cmd += ["-stream_loop", "-1", "-i", MUSIC]
-    audio_filters.append("[%d:a]volume=0.16,atrim=0:%.2f,afade=t=in:d=1.5,afade=t=out:st=%.2f:d=2[music]" % (inputs, total, max(0, total - 2)))
+    audio_filters.append("[%d:a]volume=0.32,atrim=0:%.2f,afade=t=in:d=1.5,afade=t=out:st=%.2f:d=2[music]" % (inputs, total, max(0, total - 2)))
     mix_in += "[music]"
     n_mix += 1
 audio_filters.append("%samix=inputs=%d:normalize=0,apad[aout]" % (mix_in, n_mix))

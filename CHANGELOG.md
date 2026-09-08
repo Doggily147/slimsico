@@ -2,6 +2,14 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-08 - Beat 6 fixes
+
+### Fixed
+- Purple and Yellow sat with the pelvis joint on the cushion, so the body sank through the seat; both now sit with the body's bulk on the cushion.
+- Yellow scrambles to his feet beside the jetski and takes Purple's hand standing, so the hands meet before the lift instead of parting when his sitting reach fell short.
+- The monster no longer just stands there: it lunges after Yellow as he reaches, swipes at him as the jetski lifts and misses, then rears up and roars after them (roar cue added).
+- Music: "Volatile Reaction" (Kevin MacLeod, CC BY 4.0) at `audio/ambient.mp3`, mixed louder under the picture.
+
 ## 2026-09-08 - Draft 2, beat 6: Purple
 
 ### Added

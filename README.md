@@ -116,3 +116,7 @@ python render_office_test.py
 ```
 
 Made with Blender 5.0.
+
+## Credits
+
+- Music: "Volatile Reaction" by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 (https://creativecommons.org/licenses/by/4.0/). Placed at `audio/ambient.mp3`; `render_draft2.py` mixes it under the picture.
