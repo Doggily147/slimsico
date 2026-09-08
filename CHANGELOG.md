@@ -2,6 +2,15 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-08 - Purple
+
+### Added
+- `build_purple.py`: Purple, built from the drawing. Yellow's one-mesh body and rig are cloned (`rig_utils.clone_character`) and tinted purple so the two share proportions and every animation script drives him unchanged. On top: dark glove and boot shells on the hand and foot bones; two big round black eyes with catchlights over a dark mask band sunk into the head, and a soft hood peak; a brown strap that follows the body surface from the right shoulder across the chest to the left hip and round the back, a belt with a brass buckle; a glowing green nanobot core in an eight-sided ring on the chest where the strap crosses; six green nanobot shards standing on each shoulder; and two green blades on the back, crossed with the grips at the belt, each stamped with glowing binary down both faces. He is built at the origin facing -Y in his own "Purple" collection, hidden from render until the story needs him. `--still` renders `renders/purple.png` and `renders/purple_back.png` with everything else hidden; `--save` writes the blend.
+- The blend's image textures are re-pointed to the repo's `textures/` folder, relative to the blend, whenever their absolute path no longer exists (they were saved from another checkout and rendered magenta here).
+
+### Fixed
+- `rig_utils.clone_character` now also resets the clone's quaternion rotation. Yellow's rig is keyed in quaternion mode mid-tumble, so a clone made during draft 2 came out tilted.
+
 ## 2026-09-07 - Draft 2, beat 5: the trip and the claw
 
 ### Added

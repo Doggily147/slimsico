@@ -168,6 +168,7 @@ def clone_character(src_body, src_rig, name, colour, extras=("EyeL", "EyeR", "Ca
     # the source rig may be mid-animation; the clone starts at the origin, at rest
     rig.location = (0, 0, 0)
     rig.rotation_euler = (0, 0, 0)
+    rig.rotation_quaternion = (1, 0, 0, 0)      # the source may be keyed in quaternion mode
     rig.scale = (1, 1, 1)
     for pb in rig.pose.bones:
         pb.rotation_quaternion = (1, 0, 0, 0)
