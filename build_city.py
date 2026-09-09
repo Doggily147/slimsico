@@ -347,6 +347,10 @@ for k in range(5):
     cylinder("City_SpireDeck%d" % k, 5.0 - k * 0.6, 0.5, (0, 0, 12 + k * 13 - 0.5), DARK, verts=24)
 
 # ------------------------------------------------------------ the towers
+# six silhouettes, each on an optional podium, with ledges, window bands,
+# neon edges, roof clutter (plant boxes, tanks, antenna masts, helipads) and
+# billboards; taller toward the centre
+CONCRETE = plain("CityConcrete", (0.16, 0.16, 0.17), rough=0.75)
 SPACING = 11.0
 towers = 0
 cells = []
@@ -360,40 +364,163 @@ for i in range(-n_cells, n_cells + 1):
         if d > R_CITY - 4 or abs(d - R_RING) < 6.5 or d < 17:
             continue
         cells.append((x, y, d))
+
+
+def frange(a, b, step):
+    v = a
+    while v < b:
+        yield v
+        v += step
+
+
+def ledge(x, y, w, d, z, mat=DARK, lip=0.35, h=0.35):
+    box("City_Ledge", (w + 2 * lip, d + 2 * lip, h), (x, y, z), mat)
+
+
+def bands(x, y, w, d, z0, z1, every=6.0, lip=0.15):
+    for bz in frange(z0 + every * 0.8, z1 - 1.5, every):
+        box("City_Band", (w + 2 * lip, d + 2 * lip, 0.22), (x, y, bz), DARK)
+
+
+def strips(x, y, w, d, z0, z1, corners, mat):
+    for sx, sy in corners:
+        box("City_TowerStrip", (0.2, 0.2, (z1 - z0) * 0.9), (x + sx * w / 2, y + sy * d / 2, (z0 + z1) / 2), mat)
+
+
+def podium(x, y, w, d, facade):
+    ph = random.uniform(3.5, 5.0)
+    pw, pd = w + random.uniform(2.5, 4.5), d + random.uniform(2.5, 4.5)
+    box("City_Podium", (pw, pd, ph), (x, y, ph / 2), facade, bevel=0.15)
+    ledge(x, y, pw, pd, ph + 0.15, lip=0.6, h=0.3)
+    box("City_PodiumBand", (pw + 0.12, pd + 0.12, 0.22), (x, y, ph * 0.7), random.choice(NEONS))
+    sx, sy = random.choice(((1, 0), (-1, 0), (0, 1), (0, -1)))
+    box("City_Canopy", (3.2 if sy else 1.0, 1.0 if sy else 3.2, 0.15), (x + sx * (pw / 2 + 0.5), y + sy * (pd / 2 + 0.5), 2.7), DARK)
+    box("City_CanopyLight", (2.8 if sy else 0.12, 0.12 if sy else 2.8, 0.12), (x + sx * (pw / 2 + 0.9), y + sy * (pd / 2 + 0.9), 2.6), NEON_CYAN)
+    return ph
+
+
+def roof_clutter(x, y, w, d, z, h):
+    box("City_TowerCap", (w * 1.04, d * 1.04, 0.5), (x, y, z + 0.25), DARK)
+    for k in range(random.randint(1, 3)):
+        mw, md, mh = random.uniform(1.0, 2.2), random.uniform(1.0, 2.2), random.uniform(0.8, 1.8)
+        box("City_RoofBox", (mw, md, mh), (x + random.uniform(-w / 2 + 1.3, w / 2 - 1.3), y + random.uniform(-d / 2 + 1.3, d / 2 - 1.3), z + 0.5 + mh / 2), CONCRETE)
+    if random.random() < 0.4:
+        cylinder("City_Tank", 0.8, 1.6, (x + random.uniform(-w / 3, w / 3), y + random.uniform(-d / 3, d / 3), z + 1.3), CHROME, verts=12)
+    if random.random() < 0.55:
+        ah = random.uniform(h * 0.15, h * 0.3)
+        ax, ay = x + random.uniform(-w / 4, w / 4), y + random.uniform(-d / 4, d / 4)
+        cylinder("City_Antenna", 0.18, ah, (ax, ay, z + 0.5 + ah / 2), CHROME, verts=8)
+        for k in range(3):
+            cylinder("City_AntennaRing", 0.45, 0.12, (ax, ay, z + 0.5 + ah * (0.5 + 0.17 * k)), random.choice(NEONS), verts=12)
+        cylinder("City_AntennaTip", 0.3, 0.5, (ax, ay, z + 0.5 + ah), TAILLIGHT, verts=8)
+    if random.random() < 0.3 and h > 35:
+        r = min(w, d) * 0.3
+        annulus("City_Helipad", r, r * 1.18, z + 0.52, NEON_ORANGE, segs=24)
+        box("City_HelipadH", (r * 0.5, 0.25, 0.03), (x, y, z + 0.53), NEON_ORANGE)
+
+
+def style_tiers(x, y, w, d, h, z, facade):
+    tiers = random.choice((2, 3, 3, 4)) if h > 30 else random.choice((1, 2))
+    tw, td = w, d
+    for t in range(tiers):
+        th = h / tiers * random.uniform(0.8, 1.2)
+        box("City_Tower", (tw, td, th), (x, y, z + th / 2), facade, bevel=0.15)
+        ledge(x, y, tw, td, z + 0.2)
+        bands(x, y, tw, td, z, z + th)
+        strips(x, y, tw, td, z, z + th, random.choice((((1, 1), (-1, -1)), ((1, -1), (-1, 1)), ((1, 1), (1, -1), (-1, 1), (-1, -1)))), random.choice(NEONS))
+        z += th
+        tw *= random.uniform(0.66, 0.84)
+        td *= random.uniform(0.66, 0.84)
+    return z, tw, td
+
+
+def style_cylinder(x, y, w, d, h, z, facade):
+    r = (w + d) / 4
+    cylinder("City_Tower", r, h, (x, y, z + h / 2), facade, verts=28)
+    for rz in frange(z + 7, z + h - 3, 8):
+        cylinder("City_Ring", r + 0.35, 0.3, (x, y, rz), DARK, verts=28)
+    cylinder("City_RingNeon", r + 0.12, 0.15, (x, y, z + h - 1.0), random.choice(NEONS), verts=28)
+    cylinder("City_Crown", r * 0.6, 3.0, (x, y, z + h + 1.5), facade, verts=28)
+    cylinder("City_CrownNeon", r * 0.62, 0.2, (x, y, z + h + 3.1), NEON_CYAN, verts=28)
+    return z + h + 3.0, r * 1.2, r * 1.2
+
+
+def style_slab(x, y, w, d, h, z, facade):
+    sw, sd = w * 1.5, d * 0.6
+    box("City_Tower", (sw, sd, h), (x, y, z + h / 2), facade, bevel=0.12)
+    for fz in frange(z + 4, z + h - 1, 5):                  # fins across the long faces
+        box("City_Fin", (sw + 0.6, sd + 0.5, 0.18), (x, y, fz), DARK)
+    strips(x, y, sw, sd, z, z + h, ((1, 1), (-1, 1), (1, -1), (-1, -1)), random.choice(NEONS))
+    for k in (-1, 0, 1):                                    # a row of masts on the roof
+        mh = random.uniform(4, 9)
+        cylinder("City_Mast", 0.15, mh, (x + k * sw * 0.3, y, z + h + mh / 2), CHROME, verts=8)
+        cylinder("City_MastTip", 0.25, 0.4, (x + k * sw * 0.3, y, z + h + mh), TAILLIGHT, verts=8)
+    return z + h, sw, sd
+
+
+def style_twin(x, y, w, d, h, z, facade):
+    tw = w * 0.52
+    gap = 2.6
+    for s in (-1, 1):
+        cx = x + s * (tw / 2 + gap / 2)
+        box("City_Tower", (tw, d, h), (cx, y, z + h / 2), facade, bevel=0.12)
+        bands(cx, y, tw, d, z, z + h)
+        strips(cx, y, tw, d, z, z + h, (((-s, 1), (-s, -1)),)[0], random.choice(NEONS))
+    for u in (0.45, 0.75):
+        bz = z + h * u
+        box("City_Bridge", (gap + 1.0, d * 0.45, 1.6), (x, y, bz), DARK, bevel=0.1)
+        box("City_BridgeLight", (gap + 0.6, d * 0.45 + 0.1, 0.12), (x, y, bz - 0.85), NEON_CYAN)
+    box("City_TwinCap", (w * 1.1, d * 1.04, 0.5), (x, y, z + h + 0.25), DARK)
+    return z + h, tw, d
+
+
+def style_taper(x, y, w, d, h, z, facade):
+    tw, td = w * 1.1, d * 1.1
+    steps = 5
+    for k in range(steps):
+        th = h / steps
+        box("City_Tower", (tw, td, th), (x, y, z + th / 2), facade, bevel=0.12)
+        ledge(x, y, tw, td, z + th - 0.15, lip=0.25, h=0.3)
+        z += th
+        tw *= 0.82
+        td *= 0.82
+    cylinder("City_Spike", 0.3, 8.0, (x, y, z + 4.0), CHROME, verts=8)
+    cylinder("City_SpikeNeon", 0.4, 2.0, (x, y, z + 7.5), random.choice(NEONS), verts=8)
+    return z, tw, td
+
+
+def style_hex(x, y, w, d, h, z, facade):
+    r = (w + d) / 3.4
+    cylinder("City_Tower", r, h, (x, y, z + h / 2), facade, verts=6)
+    for rz in frange(z + 6, z + h - 2, 7):
+        cylinder("City_Ring", r + 0.3, 0.25, (x, y, rz), DARK, verts=6)
+    mat = random.choice(NEONS)
+    for k in range(3):
+        a = math.radians(60 + 120 * k)
+        box("City_TowerStrip", (0.22, 0.22, h * 0.92), (x + r * math.cos(a), y + r * math.sin(a), z + h / 2), mat, rot=(0, 0, a))
+    cylinder("City_HexCap", r * 1.05, 0.5, (x, y, z + h + 0.25), DARK, verts=6)
+    cylinder("City_HexNeon", r * 0.5, 0.3, (x, y, z + h + 0.6), mat, verts=6)
+    return z + h + 0.6, r * 1.4, r * 1.4
+
+
+STYLES = [(style_tiers, 4), (style_cylinder, 2), (style_slab, 2), (style_twin, 1), (style_taper, 1), (style_hex, 2)]
 for x, y, d in cells:
     falloff = max(0.0, 1 - d / R_CITY)
     h = 14 + 62 * falloff ** 1.3 * random.uniform(0.55, 1.25)
     w = random.uniform(5.5, 8.5)
     dpt = random.uniform(5.5, 8.5)
     facade = random.choice(FACADES)
-    tiers = random.choice((1, 1, 2, 2, 3)) if h > 30 else 1
-    z = 0
-    tw, td = w, dpt
-    for t in range(tiers):
-        th = h / tiers * random.uniform(0.85, 1.15) if tiers > 1 else h
-        box("City_Tower", (tw, td, th), (x, y, z + th / 2), facade, bevel=0.12)
-        # neon strips down two opposite vertical edges
-        strip = random.choice(NEONS)
-        for sx, sy in random.choice((((1, 1), (-1, -1)), ((1, -1), (-1, 1)))):
-            box("City_TowerStrip", (0.22, 0.22, th * 0.92), (x + sx * tw / 2, y + sy * td / 2, z + th / 2), strip)
-        z += th
-        tw *= random.uniform(0.62, 0.82)
-        td *= random.uniform(0.62, 0.82)
-    # roof: a lit rim, an antenna or a helipad ring
-    box("City_TowerCap", (tw * 1.02, td * 1.02, 0.4), (x, y, z + 0.2), DARK)
-    if random.random() < 0.45:
-        cylinder("City_Antenna", 0.25, h * 0.25, (x, y, z + h * 0.125), CHROME, verts=8)
-        cylinder("City_AntennaTip", 0.35, 0.6, (x, y, z + h * 0.25), TAILLIGHT, verts=8)
-    if random.random() < 0.3 and h > 35:
-        annulus("City_Helipad", tw * 0.3, tw * 0.36, z + 0.42, NEON_ORANGE, segs=24, parent=root)
-    # holographic billboards on the tallest
+    style = random.choice([s for s, n in STYLES for _ in range(n)])
+    z = podium(x, y, w, dpt, facade) if (h > 24 and random.random() < 0.6) else 0.0
+    top, tw, td = style(x, y, w, dpt, h, z, facade)
+    roof_clutter(x, y, tw, td, top, h)
     if h > 45 and random.random() < 0.6:
         side = random.choice(("x", "y"))
         sgn = random.choice((-1, 1))
-        bz = z * random.uniform(0.45, 0.75)
+        bz = top * random.uniform(0.45, 0.75)
         bw, bh = random.uniform(6, 9), random.uniform(8, 12)
         bb = box("City_Billboard", (0.3, bw, bh) if side == "x" else (bw, 0.3, bh),
-                 (x + sgn * (w / 2 + 0.6), y, bz) if side == "x" else (x, y + sgn * (dpt / 2 + 0.6), bz), random.choice(NEONS))
+                 (x + sgn * (w / 2 + 0.8), y, bz) if side == "x" else (x, y + sgn * (dpt / 2 + 0.8), bz), random.choice(NEONS))
         bb["hologram"] = 1
         bb["out"] = (sgn if side == "x" else 0, sgn if side == "y" else 0)
     towers += 1
@@ -536,39 +663,132 @@ def join_into(name, parts):
     return o
 
 
-def make_car():
-    parts = [box("carbody", (4.2, 2.0, 1.0), (0, 0, 0.9), CAR_PAINT, bevel=0.25),
-             box("carcabin", (2.2, 1.7, 0.8), (-0.2, 0, 1.75), DARK, bevel=0.25),
-             box("carglow", (3.6, 1.6, 0.08), (0, 0, 0.42), NEON_CYAN)]
+GLASS_CAR = plain("CityCarGlass", (0.04, 0.07, 0.1), rough=0.06, metallic=0.9)
+
+
+def profile_body(name, pts, width, mat, glass_z=None, bevel=0.12):
+    """A body from a side-profile polygon (x along the car, z up) extruded
+    across `width`, bevelled and smoothed; side faces above `glass_z` become
+    the glass of the cabin."""
+    bm = bmesh.new()
+    front = [bm.verts.new((px, -width / 2, pz)) for px, pz in pts]
+    back = [bm.verts.new((px, width / 2, pz)) for px, pz in pts]
+    bm.faces.new(front[::-1])
+    bm.faces.new(back)
+    n = len(pts)
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((front[i], front[j], back[j], back[i]))
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    mesh = bpy.data.meshes.new(name)
+    bm.to_mesh(mesh)
+    bm.free()
+    o = bpy.data.objects.new(name, mesh)
+    scene.collection.objects.link(o)
+    o.data.materials.append(mat)
+    o.data.materials.append(GLASS_CAR)
+    if glass_z is not None:
+        for poly in o.data.polygons:
+            if poly.center.z > glass_z and poly.normal.z < 0.7:
+                poly.material_index = 1
+    attach(o)
+    b = o.modifiers.new("Bevel", "BEVEL")
+    b.width = bevel
+    b.segments = 3
+    b.limit_method = "ANGLE"
+    bpy.ops.object.select_all(action="DESELECT")
+    o.select_set(True)
+    bpy.context.view_layer.objects.active = o
+    bpy.ops.object.modifier_apply(modifier="Bevel")
+    bpy.ops.object.shade_smooth_by_angle(angle=math.radians(40))
+    return o
+
+
+def wheel(x, y, r=0.45, w=0.42):
+    tyre = cylinder("wheel", r, w, (x, y, r), DARK, verts=20, rot=(math.pi / 2, 0, 0))
+    rim = cylinder("rim", r * 0.62, w + 0.04, (x, y, r), CHROME, verts=12, rot=(math.pi / 2, 0, 0))
+    hub = cylinder("hub", r * 0.2, w + 0.08, (x, y, r), NEON_CYAN, verts=8, rot=(math.pi / 2, 0, 0))
+    return [tyre, rim, hub]
+
+
+def make_car(kind):
+    if kind == "sedan":
+        pts = [(2.3, 0.5), (2.45, 0.9), (2.2, 1.1), (1.0, 1.15), (0.5, 1.75), (-0.8, 1.8), (-1.6, 1.3), (-2.3, 1.2), (-2.4, 0.9), (-2.3, 0.5)]
+        width, glass, wheels, L = 2.0, 1.2, ((1.5, 1.0), (-1.5, 1.0)), 2.45
+    elif kind == "sport":
+        pts = [(2.4, 0.4), (2.55, 0.75), (1.0, 0.95), (0.3, 1.4), (-1.0, 1.45), (-1.9, 1.05), (-2.4, 1.0), (-2.5, 0.6), (-2.4, 0.4)]
+        width, glass, wheels, L = 2.1, 1.0, ((1.55, 1.05), (-1.5, 1.05)), 2.5
+    elif kind == "van":
+        pts = [(2.4, 0.5), (2.6, 1.0), (2.3, 1.5), (1.6, 2.3), (-2.5, 2.4), (-2.6, 0.5)]
+        width, glass, wheels, L = 2.1, 1.55, ((1.5, 1.05), (-1.6, 1.05)), 2.6
+    else:                                                   # bus
+        pts = [(4.0, 0.5), (4.15, 1.2), (4.0, 2.7), (-4.0, 2.7), (-4.15, 1.2), (-4.0, 0.5)]
+        width, glass, wheels, L = 2.3, 1.6, ((2.8, 1.15), (-2.6, 1.15)), 4.15
+    body = profile_body("carbody", pts, width, CAR_PAINT, glass_z=glass)
+    parts = [body]
+    for wx, wy in wheels:
+        for s in (-1, 1):
+            parts += wheel(wx, s * wy)
+    hz = 0.85 if kind != "bus" else 1.0
+    parts.append(box("bumperF", (0.25, width * 0.9, 0.3), (L - 0.05, 0, 0.6), DARK, bevel=0.06))
+    parts.append(box("bumperR", (0.25, width * 0.9, 0.3), (-L + 0.05, 0, 0.6), DARK, bevel=0.06))
     for s in (-1, 1):
-        parts.append(box("carhead", (0.15, 0.5, 0.3), (2.1, s * 0.6, 0.95), HEADLIGHT))
-        parts.append(box("cartail", (0.15, 0.5, 0.25), (-2.1, s * 0.6, 0.95), TAILLIGHT))
-        for wx in (-1.4, 1.4):
-            parts.append(cylinder("carwheel", 0.42, 0.4, (wx, s * 1.0, 0.42), DARK, verts=16, rot=(math.pi / 2, 0, 0)))
-    car = join_into("City_CarProto", parts)
+        parts.append(box("head", (0.12, 0.42, 0.22), (L + 0.02, s * (width / 2 - 0.4), hz), HEADLIGHT))
+        parts.append(box("mirror", (0.25, 0.3, 0.18), (0.9 if kind != "bus" else 3.4, s * (width / 2 + 0.2), glass + 0.25), DARK))
+    parts.append(box("tail", (0.1, width * 0.8, 0.16), (-L - 0.02, 0, hz), TAILLIGHT))
+    parts.append(box("glow", (L * 1.5, width * 0.7, 0.06), (0, 0, 0.3), random.choice((NEON_CYAN, NEON_MAG, NEON_BLUE))))
+    if kind == "sport":
+        parts.append(box("spoiler", (0.5, width * 0.95, 0.08), (-2.2, 0, 1.45), DARK))
+        for s in (-1, 1):
+            parts.append(box("spoilerLeg", (0.12, 0.12, 0.4), (-2.2, s * (width * 0.4), 1.2), DARK))
+    if kind == "bus":
+        parts.append(box("busSign", (0.1, 1.6, 0.35), (4.16, 0, 2.2), NEON_ORANGE))
+        parts.append(box("busRoof", (7.0, 1.6, 0.25), (0, 0, 2.8), DARK, bevel=0.06))
+    car = join_into("City_CarProto_" + kind, parts)
     car.location = (0, 0, -50)
     return car
 
 
-def make_flyer():
-    parts = [box("flybody", (4.6, 1.8, 0.9), (0, 0, 0), FLYER_PAINT, bevel=0.35),
-             box("flycanopy", (1.8, 1.3, 0.7), (0.3, 0, 0.55), DARK, bevel=0.3),
-             box("flyglow", (3.8, 1.2, 0.1), (0, 0, -0.5), NEON_MAG),
-             box("flyhead", (0.15, 1.0, 0.2), (2.3, 0, 0.05), HEADLIGHT)]
+def make_flyer(kind):
+    if kind == "sport":
+        pts = [(2.9, 0.45), (2.4, 0.05), (-2.2, 0.0), (-3.0, 0.35), (-3.0, 0.85), (-1.4, 1.05), (-0.2, 1.5), (1.2, 1.35), (2.4, 0.95)]
+        width, glass = 1.7, 1.0
+    else:                                                   # cargo
+        pts = [(3.0, 0.3), (2.5, 0.0), (-3.0, 0.0), (-3.2, 1.2), (1.5, 1.6), (2.6, 1.1)]
+        width, glass = 2.0, 1.15
+    body = profile_body("flybody", pts, width, FLYER_PAINT, glass_z=glass, bevel=0.16)
+    parts = [body]
     for s in (-1, 1):
-        parts.append(box("flyfin", (1.6, 0.15, 0.6), (-1.4, s * 1.0, 0.3), FLYER_PAINT, rot=(s * 0.5, 0, 0)))
-        parts.append(box("flytail", (0.2, 0.4, 0.25), (-2.3, s * 0.5, 0.0), TAILLIGHT))
-        parts.append(cylinder("flypod", 0.45, 0.5, (0.6, s * 1.25, -0.2), CHROME, verts=12))
-        parts.append(cylinder("flypodglow", 0.3, 0.1, (0.6, s * 1.25, -0.5), NEON_CYAN, verts=12))
-    fl = join_into("City_FlyerProto", parts)
+        py = s * (width / 2 + 0.55)
+        parts.append(cylinder("pod", 0.42, 2.0, (-0.4, py, 0.45), FLYER_PAINT, verts=14, rot=(0, math.pi / 2, 0)))
+        parts.append(cylinder("podIntake", 0.3, 0.2, (0.65, py, 0.45), DARK, verts=14, rot=(0, math.pi / 2, 0)))
+        parts.append(cylinder("podGlow", 0.32, 0.15, (-1.45, py, 0.45), NEON_CYAN, verts=14, rot=(0, math.pi / 2, 0)))
+        parts.append(box("strut", (0.8, 0.5, 0.18), (-0.2, s * (width / 2 + 0.2), 0.55), DARK))
+        parts.append(box("winglet", (1.2, 0.12, 0.7), (-2.2, s * (width / 2 - 0.1), 0.9), FLYER_PAINT, rot=(s * 0.35, 0, 0)))
+        parts.append(box("wingTip", (0.5, 0.14, 0.12), (-2.2, s * (width / 2 + 0.05), 1.22), TAILLIGHT))
+    parts.append(cylinder("thruster", 0.34, 0.3, (-3.1, 0, 0.6), NEON_MAG, verts=14, rot=(0, math.pi / 2, 0)))
+    parts.append(box("head", (0.12, 0.9, 0.16), (2.85, 0, 0.5), HEADLIGHT))
+    parts.append(box("underglow", (4.0, width * 0.7, 0.06), (0, 0, -0.02), NEON_MAG))
+    fl = join_into("City_FlyerProto_" + kind, parts)
     fl.location = (0, 0, -50)
     return fl
 
 
-car_proto = make_car()
-flyer_proto = make_flyer()
-car_proto.hide_render = flyer_proto.hide_render = True
-car_proto.hide_viewport = flyer_proto.hide_viewport = True
+car_protos = {k: make_car(k) for k in ("sedan", "sport", "van", "bus")}
+flyer_protos = {k: make_flyer(k) for k in ("sport", "cargo")}
+for p in list(car_protos.values()) + list(flyer_protos.values()):
+    p.hide_render = True
+    p.hide_viewport = True
+
+
+def pick_car():
+    return car_protos[random.choice(("sedan", "sedan", "sedan", "sport", "sport", "van", "bus"))]
+
+
+def pick_flyer():
+    return flyer_protos[random.choice(("sport", "sport", "cargo"))]
+
+
 PALETTE = [(0.9, 0.1, 0.1), (0.1, 0.3, 0.9), (0.95, 0.95, 0.95), (0.1, 0.1, 0.12), (0.9, 0.6, 0.1), (0.2, 0.8, 0.4), (0.6, 0.1, 0.8), (0.9, 0.9, 0.2)]
 
 
@@ -621,13 +841,13 @@ def drive_line(o, p0, p1, z, speed, step=6, phase=0.0):
 n_cars = 0
 for lane_r, ccw in ((R_RING - 3.2, True), (R_RING - 1.2, True), (R_RING + 1.2, False), (R_RING + 3.2, False)):
     for k in range(9):
-        c = instance(car_proto, "City_Car", random.choice(PALETTE))
+        c = instance(pick_car(), "City_Car", random.choice(PALETTE))
         drive_circle(c, lane_r, 0.12, 2 * math.pi * k / 9 + random.uniform(0, 0.5), random.uniform(7, 11), ccw)
         n_cars += 1
 for axis in ("x", "y"):
     for lane in (-3.0, -1.2, 1.2, 3.0):
         for k in range(3):
-            c = instance(car_proto, "City_Car", random.choice(PALETTE))
+            c = instance(pick_car(), "City_Car", random.choice(PALETTE))
             L = R_RING + 3
             half = random.choice((-1, 1))                   # one stretch of the avenue, either side of the plaza
             a, b = (half * 17, half * L) if lane > 0 else (half * L, half * 17)
@@ -638,13 +858,13 @@ for axis in ("x", "y"):
 n_fly = 0
 for lane_r, z, ccw in ((26, 22, True), (38, 30, False), (50, 26, True), (60, 40, False), (34, 48, True), (46, 58, False), (66, 34, True), (20, 66, False)):
     for k in range(5):
-        fl = instance(flyer_proto, "City_Flyer", random.choice(PALETTE))
+        fl = instance(pick_flyer(), "City_Flyer", random.choice(PALETTE))
         drive_circle(fl, lane_r + random.uniform(-2, 2), z + random.uniform(-2, 2), 2 * math.pi * k / 5 + random.uniform(0, 0.8),
                      random.uniform(14, 24), ccw, wobble=0.6)
         n_fly += 1
 # a few flyers crossing straight over the city
 for k in range(8):
-    fl = instance(flyer_proto, "City_Flyer", random.choice(PALETTE))
+    fl = instance(pick_flyer(), "City_Flyer", random.choice(PALETTE))
     a = random.uniform(0, 2 * math.pi)
     d = Vector((math.cos(a), math.sin(a)))
     z = random.uniform(30, 70)

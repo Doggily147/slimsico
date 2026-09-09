@@ -2,6 +2,13 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-09 - City: better towers and vehicles
+
+### Changed
+- Towers come in six silhouettes now (tiered with ledges and window bands, cylinders with ring ledges and a crown, slabs with fins and roof masts, twin towers joined by lit sky bridges, five-step tapers with a neon spike, hexagonal prisms with neon edges), most on a podium with a neon band and a lit entrance canopy, and every roof carries plant boxes, tanks, an antenna mast with neon rings or a helipad.
+- Vehicles are modelled from side profiles extruded and bevelled, with dark glass cabins, tyres with chrome rims and lit hubs, bumpers, headlights, tail strips, mirrors and underglow: sedans, low sports cars with spoilers, vans and buses on the roads; sleek and cargo flyers with engine pods, intakes, glowing exhausts, winglets and a rear thruster in the air. One mesh per type, painted per instance.
+- `render_city.py` adds a ring-road traffic view, a skyline view, and close-ups that lock onto a car and a flyer where they are on the render frame.
+
 ## 2026-09-09 - The cyber city
 
 ### Added

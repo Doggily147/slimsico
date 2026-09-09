@@ -19,8 +19,26 @@ VIEWS = {                                   # name: (position, aim, lens), in th
     "street": ((-58.0, -3.6, 2.6), (30.0, 0.0, 14.0), 26),
     "plaza_up": ((8.0, -14.0, 2.0), (-2.0, 24.0, 52.0), 24),
     "from_plate": ((330.0, 290.0, 9.0), (0.0, 0.0, 30.0), 35),
+    "traffic": ((-14.6, 79.5, 2.2), (14.0, 83.5, 2.4), 32),
+    "skyline": ((-20.0, -70.0, 40.0), (10.0, 20.0, 30.0), 30),
 }
 only = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else list(VIEWS)
+# close-ups that lock onto a vehicle where it is on the render frame (positions in the city's own space)
+scene.frame_set(1200)
+inv = root.matrix_world.inverted()
+for key, prefix, off, aim_up in (("car_close", "City_Car", (6.5, -7.0, 2.4), 0.9), ("flyer_close", "City_Flyer", (7.0, -6.5, 2.0), 0.6)):
+    picks = [o for o in bpy.data.objects if o.name.startswith(prefix) and o.type == "MESH" and not o.hide_render]
+    if not picks:
+        continue
+    o = picks[len(picks) // 3]
+    M = inv @ o.matrix_world
+    loc = M.translation
+    heading = M.to_euler().z
+    from mathutils import Matrix as _M
+    pos = loc + _M.Rotation(heading, 3, "Z") @ Vector(off)
+    VIEWS[key] = (tuple(pos), tuple(loc + Vector((0, 0, aim_up))), 40)
+    if key not in only:
+        only.append(key)
 scene.camera = cam
 scene.render.image_settings.media_type = "IMAGE"
 scene.render.image_settings.file_format = "PNG"
