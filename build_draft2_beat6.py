@@ -136,8 +136,8 @@ def say(first, last, shapes, gap=6):
 # ------------------------------------------------------------ the jetski's flight
 # World path of the "Hovercraft" root (it faces its local -Y; heading 0 = flying
 # toward -Y, +90 deg = toward +X). Purple sits on it, parented, so he rides it.
-HOVER = Vector((RX - 6.2, SY + 0.6, 1.35))               # hovering beside Yellow, low, pods just off the plate
-FAR = Vector((RX - 6.2, SY + 95.0, 48.0))                 # where it comes from: far behind his head and high
+HOVER = Vector((RX - 8.0, SY + 5.0, 1.35))               # hovering beside Yellow, low, pods just off the plate; the nose stays clear of the monster
+FAR = Vector((RX - 8.0, SY + 95.0, 48.0))                 # where it comes from: far behind his head and high
 path = {}                                                 # frame -> (pos, heading, pitch, roll)
 
 
@@ -152,14 +152,16 @@ def seg(f0, f1, p0, p1, h0, h1, ease="smooth", arc=0.0):
 
 seg(F_SWOOP, F_ARRIVE, FAR, HOVER, 0, 0, ease="out")
 seg(F_ARRIVE, F_LIFT, HOVER, HOVER, 0, 0)
-UP1 = Vector((RX - 3.0, SY - 6.0, 7.5))                   # the first lift: up and forward, turning away from the monster
-UP2 = Vector((RX + 18.0, SY - 14.0, 15.0))
-UP3 = Vector((RX + 48.0, SY - 16.0, 24.0))
-CRUISE0 = Vector((RX + 66.0, SY - 16.0, 26.0))
-seg(F_LIFT, F_INSERT, HOVER, UP1, 0, 50, ease="in")
-seg(F_INSERT, F_SLIP, UP1, UP2, 50, 90, ease="smooth")
-seg(F_SLIP, F_ON, UP2, UP3, 90, 90, ease="smooth")
-seg(F_ON, F_END, UP3, CRUISE0 + Vector((0.42 * (F_END - F_ON) - 18.0, 0, 0)), 90, 90, ease="smooth")
+UP1 = Vector((RX - 12.0, SY - 6.0, 7.5))                  # the first lift: up and forward, turning left (away from Yellow's side, so the bank lifts the hull off him)
+UP2 = Vector((RX - 27.0, SY - 14.0, 15.0))
+UP3 = Vector((RX - 57.0, SY - 16.0, 24.0))
+CRUISE0 = Vector((RX - 75.0, SY - 16.0, 26.0))
+LIFT1 = HOVER + Vector((0, -0.6, 1.4))                    # straight up first, level, so the grab reads
+seg(F_LIFT, F_LIFT + 10, HOVER, LIFT1, 0, 0, ease="in")
+seg(F_LIFT + 10, F_INSERT, LIFT1, UP1, 0, -50, ease="in")
+seg(F_INSERT, F_SLIP, UP1, UP2, -50, -90, ease="smooth")
+seg(F_SLIP, F_ON, UP2, UP3, -90, -90, ease="smooth")
+seg(F_ON, F_END, UP3, CRUISE0 - Vector((0.42 * (F_END - F_ON) - 18.0, 0, 0)), -90, -90, ease="smooth")
 # the catch: a dip and a lurch as Purple grabs him
 for f in range(F_SLIP, F_CATCH + 10):
     d = math.sin(math.pi * (f - F_SLIP) / (F_CATCH + 10 - F_SLIP))
@@ -226,19 +228,35 @@ prig.scale = (1, 1, 1)
 RIDE = {"spine.001": (0, -0.30, 0.95), "spine.002": (0, -0.48, 0.88), "spine.003": (0, -0.52, 0.85), "neck": (0, -0.35, 0.94), "head": (0, -0.3, 0.95),
         "thigh.L": (-0.22, -0.92, -0.32), "shin.L": (-0.12, -0.42, -0.9), "thigh.R": (0.22, -0.92, -0.32), "shin.R": (0.12, -0.42, -0.9),
         "upper_arm.L": (-0.5, -0.72, -0.48), "forearm.L": (-0.45, -0.88, 0.12), "upper_arm.R": (0.5, -0.72, -0.48), "forearm.R": (0.45, -0.88, 0.12)}
-HAND_OUT = {**RIDE, "spine.001": (0.2, -0.25, 0.95), "spine.002": (0.42, -0.3, 0.86), "spine.003": (0.55, -0.3, 0.78),   # leans right out to his right
-            "upper_arm.R": (0.97, -0.12, -0.2), "forearm.R": (0.98, -0.1, -0.15), "hand.R": (0.97, -0.08, -0.22),
+HAND_OUT = {**RIDE, "spine.001": (0.2, -0.25, 0.95), "spine.002": (0.45, -0.3, 0.84), "spine.003": (0.66, -0.28, 0.7),   # leans right out to his right
+            "upper_arm.R": (0.9, -0.15, -0.42), "forearm.R": (0.9, -0.12, -0.42), "hand.R": (0.85, -0.12, -0.5),      # palm down, offered to Yellow
+            "head": (0.5, -0.4, 0.77), "neck": (0.25, -0.3, 0.92),                                                    # and he looks down at him
             "upper_arm.L": (-0.3, -0.75, -0.6), "forearm.L": (-0.25, -0.9, -0.05)}
 pposer_order = pposer.order + ["hand.R", "hand.L"]
 pposer = Poser(prig, order=pposer_order)
 pposer.pose(F0 + 1, RIDE)
 pposer.pose(F_ARRIVE, RIDE)
 pposer.pose(F_HAND + 8, HAND_OUT)
+BECKON = {**HAND_OUT, "forearm.R": (0.9, -0.15, -0.4), "hand.R": (0.86, -0.15, -0.48)}       # two small "come on" lifts of the hand
+pposer.pose(F_HAND + 16, BECKON)
+pposer.pose(F_HAND + 22, HAND_OUT)
+pposer.pose(F_HAND + 30, BECKON)
+pposer.pose(F_HAND + 36, HAND_OUT)
+HOLD = {**HAND_OUT, "spine.003": (0.72, -0.25, 0.64), "upper_arm.R": (0.92, -0.15, -0.36), "forearm.R": (0.95, -0.1, -0.3), "hand.R": (0.92, -0.1, -0.38)}   # arm straight out over the side: Yellow hangs clear of the hull
+pposer.pose(F_LIFT + 8, HOLD)
 
 
 def purple_hand(frame):
     at(frame)
     return prig.matrix_world @ prig.pose.bones["hand.R"].tail
+
+
+def clasp(frame):
+    """Where Yellow's hand goes to hold Purple's: overlapping the mitten, up his forearm."""
+    at(frame)
+    ph = prig.matrix_world @ prig.pose.bones["hand.R"].tail
+    pw = prig.matrix_world @ prig.pose.bones["hand.R"].head
+    return ph + (pw - ph).normalized() * 0.42
 
 
 def yellow_point(frame, bone="head"):
@@ -267,13 +285,14 @@ ROAR = {**REAR, "spine.003": (0, 0.1, 0.99), "neck": (0, -0.2, 0.98), "head": (0
 mrig.rotation_mode = "XYZ"
 key(mrig, F0 + 1, loc=tuple(M0), rot=MROT)
 for f in range(F0 + 1, F_END + 1):
-    u = smooth((f - (F_ARRIVE - 8)) / 10.0)
+    u = smooth((f - (F_ARRIVE - 16)) / 12.0)
     p = {}
     for n in mposer.order:
         a = Vector(MSTART.get(n, (0, 0, 1)))
         b = Vector(REAR.get(n, MSTART.get(n, (0, 0, 1))))
         p[n] = tuple(a.lerp(b, u).normalized())
     # the lunge: from the moment Yellow reaches, it comes on at him
+    back = smooth((f - (F_ARRIVE + 4)) / 10.0)              # the second step of the recoil: it backs off a stride
     lunge = smooth((f - F_SIT) / 14.0) * (1.0 - smooth((f - (F_LIFT + 18)) / 22.0))
     for n in LUNGE:
         p[n] = tuple(Vector(p[n]).lerp(Vector(LUNGE[n]), lunge).normalized())
@@ -297,8 +316,9 @@ for f in range(F0 + 1, F_END + 1):
                          front=(0, -0.5, 0.87), max_up=0.95, neck=0.45, blend=1.0 - 0.6 * roar))
     mposer.pose(f, p)
     # it steps in toward him with the lunge (toward +Y, where he lies), sinking on the plant
-    my = M0.y + 2.6 * lunge
-    key(mrig, f, loc=(M0.x, my, M0.z - 0.25 * lunge + 0.15 * roar), rot=(MROT[0] - 0.12 * roar, MROT[1], MROT[2]), interp="LINEAR")
+    my = M0.y - 2.4 * back + 4.2 * lunge
+    dip = 0.35 * math.sin(math.pi * back) + 0.3 * math.sin(math.pi * lunge)     # sinks on each plant
+    key(mrig, f, loc=(M0.x, my, M0.z - dip + 0.15 * roar), rot=(MROT[0] - 0.12 * roar, MROT[1], MROT[2]), interp="LINEAR")
 
 # ------------------------------------------------------------ Yellow
 # 1. propped on his elbows he turns his head to the jetski, then to Purple's hand
@@ -352,7 +372,7 @@ for f in range(F_SIT + 1, F_GRAB + 1):
     # he shuffles toward the hand as he reaches, so the hands meet at F_GRAB without a jump
     scene.view_layers[0].update()
     hand = rig.matrix_world @ rig.pose.bones["hand." + GRAB].tail
-    delta = (purple_hand(f) - hand) * u
+    delta = (clasp(f) - hand) * u
     loc = Vector((RX, SY, 0.0)) + delta
     loc.z = 0.0                                           # on his feet on the plate; the arm does the reaching
     key(rig, f, loc=tuple(loc), interp="LINEAR")
@@ -412,8 +432,8 @@ for f in range(F_GRAB + 1, F_SLIP + 1):
         slip = 0.28 * smooth((f - F_INSERT) / (F_SLIP - F_INSERT))
     p.update(look_at(rig, purple_hand(f) + Vector((0, 0, 1.0)), f, max_up=0.95))
     # tilt the whole body to hang under the hand, swung outward clear of the hull once airborne
-    swing_out(f, SIT_ROT * (1 - u) + math.radians(-6) * u, math.radians(30) * smooth((hz - 10.3) / 3.0))
-    place_hand(f, p, purple_hand(f), arm=GRAB, slip=slip, floor=True)
+    swing_out(f, SIT_ROT * (1 - u) + math.radians(-6) * u, math.radians(38) * smooth((hz - 10.3) / 3.0))
+    place_hand(f, p, clasp(f), arm=GRAB, slip=slip, floor=True)
 # the wrist tremble in the insert
 for f in range(F_INSERT, F_INSERT_END + 1):
     scene.frame_set(f)
@@ -432,11 +452,11 @@ for f in range(F_SLIP + 1, F_CATCH + 1):
     p["forearm.R"] = (0.1, -0.05, 0.99)
     p.update(look_at(rig, purple_hand(f), f, max_up=0.95))
     swing_out(f, math.radians(-6 - 10 * u), math.radians(30 - 8 * u))
-    place_hand(f, p, purple_hand(f) - Vector((0, 0, DROP * u * u)), arm=CATCH_ARM)
+    place_hand(f, p, clasp(f) - Vector((0, 0, DROP * u * u)), arm=CATCH_ARM)
 # Purple's arm snaps down to the catch, then he hauls
 CATCH = {**RIDE, "spine.002": (0.35, -0.2, 0.92), "spine.003": (0.5, -0.1, 0.86), "upper_arm.R": (0.75, -0.1, -0.65), "forearm.R": (0.7, -0.05, -0.7), "hand.R": (0.6, 0, -0.8)}
-pposer.pose(F_INSERT_END, HAND_OUT)
-pposer.pose(F_SLIP, HAND_OUT)
+pposer.pose(F_INSERT_END, HOLD)
+pposer.pose(F_SLIP, HOLD)
 pposer.pose(F_CATCH - 1, CATCH)
 pposer.pose(F_CATCH + 8, CATCH)
 for f in range(F_CATCH + 1, F_HAUL + 1):
@@ -450,17 +470,17 @@ for f in range(F_CATCH + 1, F_HAUL + 1):
     p["thigh.R"] = (0.12, -0.2 + sw, -0.97)
     p.update(look_at(rig, purple_hand(f) + Vector((0, 0, 1.5)), f, max_up=0.95))
     swing_out(f, math.radians(-16 + 10 * smooth((f - F_CATCH) / 10.0)), math.radians(24) + sw * 0.5)
-    place_hand(f, p, purple_hand(f) - Vector((0, 0, DROP)), arm=CATCH_ARM)
+    place_hand(f, p, clasp(f) - Vector((0, 0, DROP)), arm=CATCH_ARM)
 
 # 5. the haul: Purple gets his second hand on the wrist, heaves twice, leaning
 # back into each pull, and Yellow comes up in jerks, knees scrabbling at the
 # hull, free hand grabbing for the rail; then he is dragged belly-first over the
 # side, flops across the passenger seat and pushes himself up to sitting
-SEATED = {"spine.001": (0, -0.12, 0.99), "spine.002": (0, -0.2, 0.98), "spine.003": (0, -0.22, 0.97), "neck": (0, -0.15, 0.99), "head": (0, -0.22, 0.97),
-          "thigh.L": (-0.25, -0.9, -0.37), "shin.L": (-0.15, -0.45, -0.88), "thigh.R": (0.25, -0.9, -0.37), "shin.R": (0.15, -0.45, -0.88),
-          "upper_arm.L": (-0.35, -0.85, -0.4), "forearm.L": (-0.05, -0.98, -0.2), "hand.L": (0, -1, 0),
-          "upper_arm.R": (0.35, -0.85, -0.4), "forearm.R": (0.05, -0.98, -0.2), "hand.R": (0, -1, 0)}
-SEAT_LOCAL = Vector((0.0, 4.15, 0.95))                     # on the passenger cushion (pelvis joint ~0.9 above it), in the jetski's frame
+SEATED = {"spine.001": (0, 0.1, 0.99), "spine.002": (0, 0.05, 1.0), "spine.003": (0, -0.05, 1.0), "neck": (0, -0.15, 0.99), "head": (0, -0.22, 0.97),
+          "thigh.L": (-0.5, -0.78, -0.37), "shin.L": (-0.35, -0.2, -0.92), "thigh.R": (0.5, -0.78, -0.37), "shin.R": (0.35, -0.2, -0.92),
+          "upper_arm.L": (-0.55, 0.4, -0.73), "forearm.L": (-0.4, 0.6, -0.69), "hand.L": (-0.3, 0.7, -0.65),
+          "upper_arm.R": (0.55, 0.4, -0.73), "forearm.R": (0.4, 0.6, -0.69), "hand.R": (0.3, 0.7, -0.65)}
+SEAT_LOCAL = Vector((0.0, 5.4, 0.95))                     # on the passenger cushion (pelvis joint ~0.9 above it), in the jetski's frame
 CLAMBER = {**HANG, "upper_arm.L": (-0.55, -0.6, 0.58), "forearm.L": (-0.4, -0.75, 0.53), "hand.L": (-0.3, -0.8, 0.5),     # the free hand grabs for the rail
            "thigh.L": (-0.15, -0.7, -0.7), "shin.L": (-0.1, 0.35, -0.93), "thigh.R": (0.15, -0.5, -0.85), "shin.R": (0.1, 0.4, -0.9),   # knees up the hull
            "spine.002": (0, -0.15, 0.99), "spine.003": (0, -0.2, 0.98)}
@@ -469,10 +489,10 @@ OVER = {**SEATED, "spine.001": (0, -0.2, 0.98), "spine.002": (0, -0.3, 0.95), "s
         "thigh.L": (-0.2, -0.3, -0.93), "shin.L": (-0.1, 0.5, -0.86), "thigh.R": (0.2, -0.15, -0.97), "shin.R": (0.1, 0.4, -0.9)}
 HEAVE_A = {**CATCH, "upper_arm.L": (0.55, -0.55, -0.62), "forearm.L": (0.7, -0.3, -0.64), "hand.L": (0.6, -0.1, -0.79)}   # both hands down on the wrist
 HEAVE_B = {**HEAVE_A, "spine.001": (0.05, 0.05, 1.0), "spine.002": (0.15, 0.12, 0.98), "spine.003": (0.2, 0.18, 0.96),   # leans back into the pull
-           "upper_arm.R": (0.85, -0.2, 0.3), "forearm.R": (0.5, -0.35, 0.8), "hand.R": (0.3, -0.4, 0.86),
-           "upper_arm.L": (0.75, -0.3, 0.3), "forearm.L": (0.45, -0.4, 0.78), "hand.L": (0.3, -0.45, 0.84)}
-HAUL_OVER = {**RIDE, "spine.002": (0.2, 0.1, 0.97), "spine.003": (0.3, 0.2, 0.93), "upper_arm.R": (0.7, -0.2, 0.68), "forearm.R": (0.3, -0.5, 0.8), "hand.R": (0.2, -0.6, 0.77),
-             "upper_arm.L": (0.4, -0.6, 0.7), "forearm.L": (0.2, -0.7, 0.7), "hand.L": (0.1, -0.75, 0.65)}
+           "upper_arm.R": (0.85, -0.2, -0.15), "forearm.R": (0.6, -0.35, 0.35), "hand.R": (0.45, -0.4, 0.5),
+           "upper_arm.L": (0.75, -0.3, -0.15), "forearm.L": (0.55, -0.4, 0.33), "hand.L": (0.45, -0.45, 0.48)}
+HAUL_OVER = {**RIDE, "spine.002": (0.2, 0.1, 0.97), "spine.003": (0.3, 0.2, 0.93), "upper_arm.R": (0.6, -0.3, 0.2), "forearm.R": (0.35, -0.6, 0.45), "hand.R": (0.25, -0.7, 0.4),
+             "upper_arm.L": (0.4, -0.65, 0.25), "forearm.L": (0.25, -0.8, 0.35), "hand.L": (0.15, -0.85, 0.3)}
 pposer.pose(F_HAUL + 4, HEAVE_A)                           # the second hand goes on
 pposer.pose(F_HAUL + 11, HEAVE_B)                          # heave one
 pposer.pose(F_HAUL + 18, HEAVE_A)
@@ -507,21 +527,22 @@ for f in range(F_HAUL + 1, F_ON + 1):
     p.update(look_at(rig, M @ Vector((0, 0.15, 5.9)), f, blend=1.0 if u < 0.85 else 1 - smooth((u - 0.85) / 0.15), max_up=0.95))
     if u < 0.62:
         # hand-locked to Purple's hands: every heave lifts him
-        grip = purple_hand(f) - Vector((0, 0, DROP * (1 - smooth(u / 0.3))))
+        grip = clasp(f) - Vector((0, 0, DROP * (1 - smooth(u / 0.3))))
         swing_out(f, math.radians(-8), math.radians(24) * (1 - u))
         place_hand(f, p, grip, arm=CATCH_ARM)
     else:
         w = smooth((u - 0.62) / 0.38)
-        pitch = math.radians(70) * math.sin(math.pi * w)                        # belly-first over the side, then up to sitting
+        pitch = math.radians(38) * math.sin(math.pi * w)                        # belly over the edge, then up to sitting: no flip
         swing_out(f, pitch, math.radians(10) * (1 - w))
         poser.pose(f, p)
         scene.view_layers[0].update()
         hand = rig.matrix_world @ rig.pose.bones["hand." + CATCH_ARM].tail
-        hang_loc = Vector(rig.location) + (purple_hand(f) - hand)
+        hang_loc = Vector(rig.location) + (clasp(f) - hand)
         outward = M.to_3x3() @ Vector((1.0, 0.0, 0.0))
         seat_goal = M @ SEAT_LOCAL
-        arc = Vector((0, 0, 1.4)) * math.sin(math.pi * w) + outward * (1.8 * math.sin(math.pi * w) * (1 - w))
-        key(rig, f, loc=tuple(hang_loc.lerp(seat_goal, w) + arc), interp="LINEAR")
+        edge = M @ Vector((2.9, 4.6, 1.6))                                       # the gunwale beside the passenger seat
+        via = hang_loc.lerp(edge, smooth(w / 0.55)) if w < 0.55 else edge.lerp(seat_goal, smooth((w - 0.55) / 0.45))
+        key(rig, f, loc=tuple(via + Vector((0, 0, 0.5 * math.sin(math.pi * w)))), interp="LINEAR")
 
 # 6. riding behind Purple: the seat carries him; the lines
 for f in range(F_ON + 1, F_END + 1):
@@ -529,6 +550,8 @@ for f in range(F_ON + 1, F_END + 1):
     key(rig, f, loc=tuple(M @ SEAT_LOCAL), interp="LINEAR")
     key_rot(rig, f, path[f][2] * 0.6, path[f][3] * 0.6, math.radians(360 + path[f][1]))
     p = dict(SEATED)
+    sway = 0.03 * math.sin(2 * math.pi * f / 40.0)
+    p["spine.002"] = (sway, 0.05 - 0.02 * math.sin(2 * math.pi * f / 31.0), 1.0)
     if F_WHERE - 6 <= f <= F_WHERE_END + 10 or F_HELLO - 8 <= f <= F_TALKER_END + 12:
         # he leans to look at the back of Purple's head while he talks
         p["spine.003"] = (0.12, -0.28, 0.95)
@@ -539,8 +562,8 @@ say(F_HELLO, F_HELLO_END, (MID, ROUND, MID, MID, ROUND, MID, WIDE, MID), gap=6) 
 say(F_TALKER, F_TALKER_END, (ROUND, MID, WIDE, MID, ROUND, MID, WIDE, ROUND), gap=6)  # You're not much of a tal-ker, are you
 # Purple: eyes front the whole time; one slow glance back at "talker", then front again
 pposer.pose(F_TALKER + 20, RIDE)
-pposer.pose(F_TALKER + 34, {**RIDE, "head": (0.45, -0.15, 0.88), "neck": (0.2, -0.2, 0.96)})
-pposer.pose(F_TALKER + 52, {**RIDE, "head": (0.45, -0.15, 0.88), "neck": (0.2, -0.2, 0.96)})
+pposer.pose(F_TALKER + 34, {**RIDE, "head": (0.6, 0.35, 0.72), "neck": (0.3, 0.15, 0.94), "spine.003": (0.15, -0.45, 0.88)})
+pposer.pose(F_TALKER + 52, {**RIDE, "head": (0.6, 0.35, 0.72), "neck": (0.3, 0.15, 0.94), "spine.003": (0.15, -0.45, 0.88)})
 pposer.pose(F_TALKER_END + 14, RIDE)
 pposer.pose(F_END, RIDE)
 
@@ -564,13 +587,13 @@ for f in range(F_SWOOP, F_ARRIVE + 1):
     cam_key(f, (RX + 12.0, SY - 3.0, 1.6), look, 22)
 # the hand comes out: medium on Purple leaning out, Yellow's head at the bottom of frame
 for f in (F_ARRIVE + 1, F_WHO - 1):
-    cam_key(f, (RX + 5.5, SY + 12.5, 4.8), (RX - 4.4, SY + 0.9, 4.6), 30)
+    cam_key(f, (RX + 5.5, SY + 15.5, 4.8), (RX - 4.6, SY + 3.6, 4.6), 30)
 # "Who are you?": his face, from above his feet, the hand hanging in at the top
 for f in (F_WHO, F_SIT - 1):                              # (the monster stands at SY - 5.4: stay this side of it)
-    cam_key(f, (RX + 2.8, SY - 3.4, 3.7), (RX - 0.6, SY + 1.6, 2.9), 40)
+    cam_key(f, (RX + 7.0, SY - 5.0, 4.0), (RX - 1.5, SY + 2.0, 3.2), 30)     # from past his feet: his face looking up at Purple's hand
 # he sits up and grabs it: a two-shot from behind his head
 for f in (F_SIT, F_LIFT - 1):
-    cam_key(f, (RX + 2.4, SY + 9.0, 3.4), (RX - 2.6, SY + 0.6, 3.6), 30)
+    cam_key(f, (RX + 10.0, SY + 2.0, 4.5), (RX - 3.5, SY + 3.0, 4.5), 26)     # wide from his right: the hands meeting, the monster lunging behind
 # lift-off: static on the ground, panning up with them
 for f in range(F_LIFT, F_INSERT):
     cam_key(f, (RX + 11.0, SY + 7.0, 2.0), path[f][0] + Vector((0, 0, 1.0)), 28)
@@ -578,15 +601,16 @@ for f in range(F_LIFT, F_INSERT):
 for f in range(F_INSERT, F_INSERT_END + 1):
     g = purple_hand(f)
     side = Matrix.Rotation(math.radians(path[f][1]), 3, "Z") @ Vector((1.0, -1.1, 1.1)).normalized()
-    cam_key(f, g + side * 4.4, g - Vector((0, 0, 0.3)), 45)
+    cam_key(f, g + side * 6.5, g - Vector((0, 0, 0.6)), 40)
 # climbing higher: from the ground, small against the sky
 for f in range(F_INSERT_END + 1, F_SLIP - 2):
-    cam_key(f, (RX + 14.0, SY - 2.0, 1.5), path[f][0] - Vector((0, 0, 1.0)), 24)
+    at(f)
+    cam_key(f, (RX + 14.0, SY - 2.0, 1.5), path[f][0].lerp(rig.matrix_world.translation, 0.6), 24)   # framed on Yellow hanging under it
 # the slip and the catch, then the haul: alongside, tracking, Yellow's side
 for f in range(F_SLIP - 2, F_ON + 1):
     M = hc_matrix(f)
     if f < F_HAUL:
-        cam_key(f, M @ Vector((13.0, 0.5, 0.5)), M @ Vector((4.2, 0.6, -1.5)), 30)
+        cam_key(f, M @ Vector((15.0, 1.0, 3.5)), M @ Vector((4.0, 0.6, 1.5)), 26)     # both of them: Purple above, Yellow hanging
     elif f < F_HAUL + 37:
         # tight and low from just outside the hull: Purple straining, Yellow's arm and face coming up; a little handheld shake
         j = Vector((0.06 * math.sin(f * 1.7), 0.05 * math.sin(f * 2.3), 0.05 * math.sin(f * 1.3)))
@@ -599,9 +623,9 @@ for f in range(F_ON + 1, F_END + 1):
     if f < F_HELLO - 8:
         cam_key(f, M @ Vector((-7.5, -7.0, 3.0)), M @ Vector((0.4, 2.4, 5.6)), 38)
     elif f < F_TALKER - 6:
-        cam_key(f, M @ Vector((-8.5, 0.5, 6.0)), M @ Vector((0.0, 4.2, 5.8)), 45)           # closer on Yellow's face, past Purple's shoulder
+        cam_key(f, M @ Vector((-9.0, 0.5, 7.2)), M @ Vector((0.0, 4.6, 7.4)), 36)           # closer on Yellow's face, past Purple's shoulder
     else:
-        cam_key(f, M @ Vector((8.0, -5.0, 3.8)), M @ Vector((0.2, 2.6, 5.5)), 40)           # front three-quarter: Purple's blank face, Yellow behind
+        cam_key(f, M @ Vector((9.5, -6.5, 4.8)), M @ Vector((0.2, 2.4, 6.2)), 32)           # front three-quarter: Purple's blank face, Yellow behind
 
 # ------------------------------------------------------------ output and checks
 scene.frame_end = F_END

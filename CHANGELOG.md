@@ -2,6 +2,13 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-09 - Beat 6 through a critic, twice
+
+### Changed
+- Beat 6 went through two rounds of a critic agent reviewing frames sampled every half second, with fixes after each. Round one: the jetski hovered with its nose inside the monster and its hull over Yellow's legs, so it now parks further out and further up his body; Purple's offered hand was a sideways T-pose, now it reaches down palm-first, beckons twice, and he looks down at Yellow; the monster now recoils in two steps, backing off a stride, and its lunge is bigger; the hands never actually met, so Yellow's mitten now clasps over Purple's; the jetski rises level before it turns so the grab reads; the heaves pulled Yellow's wrist above Purple's head, now to chest height; Yellow sits further back with his feet down in the footwells and leaning back; five shots were reframed (the line, the reach, the catch, the two riding lines). Round two: the jetski banked toward the side Yellow hangs on and lowered the hull onto him, so it now turns left, away from him, and the bank lifts the hull clear; the haul no longer flips him, he drags belly-first over the gunwale and settles onto the seat; a looser clasp; Yellow's hands hold the grab rail behind him; Purple's glance back is a real turn over his shoulder; the "Who are you?" camera looks up past his feet at his face; the insert and the alongside shots are pulled back so both characters are in them.
+- `render_prep.py`, run by `render_draft2.py` before every render: motion blur used to straddle each camera cut and blend two shots into one ghost frame. The shutter now opens at the frame and the key before every cut is held, so cuts are clean.
+- `subdiv_level.py` wraps a headless beat pass: subdivision down to 0 while keying, back to 2 before saving (a beat 6 pass is about ten minutes).
+
 ## 2026-09-09 - Full draft 2 assembled
 
 ### Changed

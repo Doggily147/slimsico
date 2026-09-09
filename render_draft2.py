@@ -86,7 +86,7 @@ if "--clip" in sys.argv:
     if "--no-render" not in sys.argv:
         if os.path.exists(raw):
             os.remove(raw)
-        subprocess.run([BLENDER, "-b", os.path.join(ROOT, "slimsico.blend"), "-S", "Scene", "-s", str(A), "-e", str(B),
+        subprocess.run([BLENDER, "-b", os.path.join(ROOT, "slimsico.blend"), "-S", "Scene", "--python", os.path.join(ROOT, "render_prep.py"), "-s", str(A), "-e", str(B),
                         "--python-expr", "import bpy; bpy.context.scene.render.filepath = %r" % raw.replace("\\", "/"), "-a"],
                        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
@@ -96,7 +96,7 @@ elif "--from" in sys.argv:
     first = int(sys.argv[sys.argv.index("--from") + 1])
     part = os.path.join(RENDERS, "draft2_raw_part.mp4")
     head = os.path.join(RENDERS, "draft2_raw_head.mp4")
-    subprocess.run([BLENDER, "-b", os.path.join(ROOT, "slimsico.blend"), "-S", "Scene", "-s", str(first), "-e", str(F_END),
+    subprocess.run([BLENDER, "-b", os.path.join(ROOT, "slimsico.blend"), "-S", "Scene", "--python", os.path.join(ROOT, "render_prep.py"), "-s", str(first), "-e", str(F_END),
                     "--python-expr", "import bpy; bpy.context.scene.render.filepath = %r" % part.replace("\\", "/"), "-a"],
                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
     # the kept raw render up to the splice point, re-encoded so the join is clean
@@ -111,7 +111,7 @@ elif "--from" in sys.argv:
 elif "--no-render" not in sys.argv:
     if os.path.exists(raw):
         os.remove(raw)
-    subprocess.run([BLENDER, "-b", os.path.join(ROOT, "slimsico.blend"), "-S", "Scene", "-a"],
+    subprocess.run([BLENDER, "-b", os.path.join(ROOT, "slimsico.blend"), "-S", "Scene", "--python", os.path.join(ROOT, "render_prep.py"), "-a"],
                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
 video_filters = []
