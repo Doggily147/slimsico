@@ -2,6 +2,14 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-09 - Full draft 2 assembled
+
+### Changed
+- `renders/draft2.mp4` is the whole of draft 2 so far, beats 1-6, 69 s with music: beat 6 rendered on this machine and spliced onto the kept raw render with `render_draft2.py --from 1081`.
+
+### Fixed
+- The hover-screen's HUD image sequence was saved with the other checkout's absolute path and rendered blank here; it is now blend-relative (`//textures/hud/`).
+
 ## 2026-09-08 - Beat 6: the haul, and the crate cleared
 
 ### Changed

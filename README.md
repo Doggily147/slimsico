@@ -57,7 +57,7 @@ Progress against this goal is tracked in [CHANGELOG.md](CHANGELOG.md).
 - `renders/scene.png` - 1920x1080 EEVEE render of the empty set.
 - `renders/character_viewport.png` - viewport screenshot of the character on the grid.
 - `renders/office_test.mp4` - the office robbery test scene with rewinds.
-- `renders/draft2.mp4` - draft 2 so far.
+- `renders/draft2.mp4` - draft 2 so far: beats 1-6, 69 s, with music.
 - `renders/hovercraft.png` - viewport shot of the flying jetski.
 - `renders/hovercraft_dash.png` - the rider's view of the dash, hologram and hover-screen.
 - `renders/hover_screen_demo.mp4` - the hover-screen demo: every app opened and used.
