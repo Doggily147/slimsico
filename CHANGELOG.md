@@ -2,6 +2,12 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-09 - The cyber city
+
+### Added
+- `build_city.py`: a giant neon city under a forcefield dome in the far corner of the plate (the "City" collection, everything under the `City` empty at (-165, -165)). From the drawing: a ring wall of tough stone (procedural blocks with dark joints and bump), 14 studs high and 200 across, with a lit slit along it and a car-sized turret pod on top every 45 degrees (domed body, lit slit, chrome barrel with a glowing tip, legs), an arched forcefield gate in the front of the wall facing the plate centre with stone pillars and a ring of emitters round the arch, and a simple see-through forcefield dome sitting on the wall top (fresnel glow, faint cells, a bright ring where it meets the wall). Inside: a pavement disc, two lit avenues and a ring road with neon lane lines, a central plaza with a chrome spire and neon decks, 116 towers on an 11-stud grid stepping up toward the centre (tiered, lit windows from a brick texture in object space, neon strips down the edges, caps, antennas, helipads, holographic billboards, some showing the hover-screen HUD), low blocks and neon signs at street level, 60 ground cars (one mesh instanced, painted per object) circling the ring road both ways and running the avenues, and 48 flying cars on lanes at eight heights plus straight crossings, all keyed for the whole timeline. Six shadowless neon glow lights.
+- `render_city.py`: renders five check views (the gate, aerial, street level, looking up from the plaza, and from the plate) to `renders/city_*.png`.
+
 ## 2026-09-09 - Beat 6 through a critic, twice
 
 ### Changed
