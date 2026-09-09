@@ -2,6 +2,11 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-10 - Draft 2 rendered through beat 7
+
+### Changed
+- `renders/draft2.mp4` is beats 1-7, 112 s with music. Known weak spots left for the next pass: the city's facades read blocky up close (the recessed window grid with narrow piers), and a few beat 7 shots are tight.
+
 ## 2026-09-09 - Beat 7: Lime
 
 ### Added

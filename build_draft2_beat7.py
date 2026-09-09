@@ -390,8 +390,8 @@ SHOTS = [
     (F_ABOUT, F_TALKER - 1, (10.0, 11.0, 6.5), (0.5, 1.8, 5.0), 30),                      # from behind them: Purple's back ahead as Lime asks him
     (F_TALKER, F_NAMES - 1, (13.0, -3.0, 5.5), (1.8, 4.2, 4.5), 30),                      # the two-shot again
     (F_NAMES, F_HOW - 1, (9.5, 12.5, 6.5), (0.5, 5.0, 5.0), 35),                          # Yellow answering
-    (F_HOW, F_LOOK_ARM - 1, (12.0, -1.0, 7.4), (3.6, 3.2, 6.4), 38),                      # Lime's face from his front-right
-    (F_LOOK_ARM, F_END, (12.0, -2.0, 7.2), (3.7, 3.0, 6.3), 40),                          # he looks at his arm: LIME on the forearm, then "Lime."
+    (F_HOW, F_LOOK_ARM - 1, (13.0, -1.5, 8.6), (3.6, 3.2, 7.6), 36),                      # Lime's face from his front-right
+    (F_LOOK_ARM, F_END, (13.0, -2.5, 8.4), (3.7, 3.0, 7.4), 38),                          # he looks at his arm: LIME on the forearm, then "Lime."
 ]
 for start, end, cpos, tgt, lens in SHOTS:
     for f in range(start, end + 1):
