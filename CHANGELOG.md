@@ -2,6 +2,25 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-09 - Beat 7: Lime
+
+### Added
+- `build_lime.py`: Lime, a lime-green blob cloned from Yellow's body and rig (`rig_utils.clone_character`) with Yellow's eyes, smile and open mouth, round glasses (two rings, a bridge and arms on the head bone) and "LIME" as extruded text pressed onto the outside of his left forearm just below the elbow, riding the forearm bone. Hidden from render until the story needs him.
+- `build_draft2_beat7.py` (frames 1657-2680): Purple flies Yellow on in a wide bank over the plate at cruising speed. Up ahead Lime falls out of the sky, limbs flailing, straight down onto the spot where the gunwale will be, and the jetski passes under him perfectly: his hands hit the rail, he swings down and hangs off the right side, legs kicking, while Purple gives him one glance and Yellow twists round: "What, how did you get on here?" Lime pulls up, gets a knee on the gunwale, swings over and sits on the side with his legs over the edge and a hand on the rail: "What the hell..." "...is going on!" Then the exchange: Yellow's "I don't know any more than you" with a shrug, Lime asking Purple, Yellow's "He's not really much of a talker" with glances at Purple's back, Lime's "Ughhh", a beat, "Anyways, what are your guys' names?", Yellow's long "Uhhhhhhhh", "I guess Yellow. And just call this other guy Purple", two seconds, "How about you, what is your name?", Lime's "Umm", he lifts his forearm and looks at the name on it, "Lime." Purple never speaks. Talking mouths per syllable for both, eyelines following whoever is spoken to. Shots ride with the jetski: the bank from ahead, the speck falling seen from behind the seat, the landing from the right, low off the side for the hang, over the stern for the climb, two-shots and singles for the lines, and a close-up on the forearm for the name.
+- `render_draft2.py` renders to frame 2680 with the thirteen new subtitles and cues (the hover hum, Lime's falling whistle, the catch, the thump as he lands on the seat).
+
+## 2026-09-09 - Beat 6 bug pass
+
+### Fixed
+- A QA reviewer went over beat 6 frame by frame. Fixed: the catch now holds the wrist (Yellow's hand sits just above Purple's palm instead of a body-length below it); the hands stay together once the jetski lifts (the floor clamp only applies while he is still on his feet); Purple catches and heaves with his arm back over the side so Yellow comes up beside the passenger seat rather than through Purple's leg; Yellow sits further back with his hands on his knees, clear of the katanas; the jetski climbs higher over the monster; no pop at the join with beat 5; five shots reframed so Purple's head and the monster's jaw are in frame; and the motion-blur shutter is shorter (0.3) so fast hands and heaves stop ghosting.
+
+## 2026-09-09 - The city, professional pass
+
+### Changed
+- An art director agent reviewed the city; the pass that followed: every tower body is now one mesh with real recessed windows (inset frames, lit or dark panes, the reveal walls lit as the room behind), residential floors with balconies (a slab, a railing, a doorway), podiums with glass lobbies (columns, reception desk, lit ceiling, seats, citizens), 232 shops you can see into (open glass fronts with a doorway, counter, shelves of goods, a hanging light, a shopkeeper and customers, a neon name over the door from a word list), six tower silhouettes plus four landmark towers nearly twice the height (a twisted stack, a ring-crowned tower, a split tower with sky bridges, a taper), a hero spire (tapered glass shaft with lit seams, an observation deck, a turning holo ring, a blinker), ten facade families (dark claddings, concrete panel, brushed metal, coloured composite) with district neon hues by sector, a plaza with a fountain and a park ring, crosswalks and traffic lights, an elevated monorail loop with pylons, two stations with waiting citizens and two four-car trains with passengers, forty big neon names on the towers, floating holo ads, haze under the dome for depth, stronger neon, fewer antennas, flyer lanes above the roofs, and citizens in a range of sizes.
+- The citizens are blobs like Yellow and Purple: Yellow's body baked from his rest pose and scaled to street size, with eyes and a smile, in eight colours; about a third are white and those carry a drawn eye on the forehead. 254 of them walk the sidewalks, the avenues and the plaza, plus the ones in shops, lobbies and stations.
+- Cars are profile-extruded, tapered, bevelled and smoothed, with real wheel arches, see-through glass and people inside (drivers and passengers), door seams, handles, mirrors, plates, rims with spokes; sedans, sports cars, vans and buses. Flyers likewise with pilots, engine pods, winglets and a thruster.
+
 ## 2026-09-09 - City: better towers and vehicles
 
 ### Changed

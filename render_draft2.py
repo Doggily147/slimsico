@@ -20,15 +20,21 @@ MUSIC = next((p for p in (os.path.join(ROOT, "audio", "ambient" + ext) for ext i
 FPS = 24
 
 # frames match build_draft2.py and build_draft2_beat4.py / beat5 / beat6
-F_END = 1656
+F_END = 2680
 F_ADV, F_LOOM = 914, 1030
 SUBTITLES = [("Where am I?", 412, 452), ("I will walk around to find clues", 504, 558),
              ("Who are you?", 1166, 1196), ("Where are we going?", 1392, 1430),
-             ("Hello, are you going to answer me?", 1502, 1562), ("You’re not much of a talker, are you?", 1578, 1636)]   # a typographic apostrophe: a plain one breaks drawtext quoting
+             ("Hello, are you going to answer me?", 1502, 1562), ("You’re not much of a talker, are you?", 1578, 1636),   # a typographic apostrophe: a plain one breaks drawtext quoting
+             ("What, how did you get on here?", 1800, 1850), ("What the hell...", 1905, 1935), ("...is going on!", 1947, 1985),
+             ("I don’t know any more than you.", 2000, 2050), ("What about you, Purple, do you know?", 2065, 2120),
+             ("He’s not really much of a talker.", 2135, 2185), ("Ughhh.", 2200, 2225), ("Anyways, what are your guys’ names?", 2250, 2310),
+             ("Uhhhhhhhh...", 2325, 2350), ("I guess Yellow. And just call this other guy Purple.", 2375, 2455),
+             ("How about you, what is your name?", 2505, 2560), ("Umm...", 2575, 2595), ("Lime.", 2625, 2650)]
 SOUND_CUES = [("wind", 1), ("whistle", 60), ("splat", 190),
               ("crate_whistle", 612), ("thud", 700), ("creak", 768), ("crash", 784), ("roar", 840),
               ("thump", 980), ("growl", 1030),
-              ("swoop", 1081), ("hover", 1118), ("lift", 1236), ("roar", 1248), ("climb", 1284), ("slip", 1300), ("catch", 1306)] + [("stomp", f) for f in range(F_ADV + 6, F_LOOM, 11)]
+              ("swoop", 1081), ("hover", 1118), ("lift", 1236), ("roar", 1248), ("climb", 1284), ("slip", 1300), ("catch", 1306),
+              ("hover", 1657), ("hover", 2200), ("crate_whistle", 1700), ("catch", 1770), ("thump", 1894)] + [("stomp", f) for f in range(F_ADV + 6, F_LOOM, 11)]
 SOUNDS = {
     # a long, faint whistle from far above that slides down and grows as he nears
     "whistle": ("0.2*sin(2*PI*(1700-600*t/5.4)*t)*min(1\\,t/2.5)*(0.3+0.7*t/5.4)", 5.4),

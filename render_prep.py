@@ -8,6 +8,7 @@ import bpy
 
 scene = bpy.data.scenes["Scene"]
 scene.render.motion_blur_position = "START"
+scene.render.motion_blur_shutter = 0.3                       # a shorter shutter: fast hands and heaves stop ghosting
 JUMP = 2.0                                       # studs in one frame: a cut, not a move
 
 
