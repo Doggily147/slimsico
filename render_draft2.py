@@ -124,11 +124,11 @@ elif "--from" in sys.argv:
                     "--python-expr", "import bpy; bpy.context.scene.render.filepath = %r" % part.replace("\\", "/"), "-a"],
                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
     # the kept raw render up to the splice point, re-encoded so the join is clean
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", raw, "-frames:v", str(first - 1), "-c:v", "libx264", "-crf", "18", "-preset", "fast",
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", raw, "-frames:v", str(first - 1), "-c:v", "h264_nvenc", "-preset", "p4", "-rc", "vbr", "-cq", "18", "-b:v", "0",
                     "-pix_fmt", "yuv420p", "-an", head], check=True)
     joined = os.path.join(RENDERS, "draft2_raw_joined.mp4")
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", head, "-i", part, "-filter_complex", "[0:v][1:v]concat=n=2:v=1:a=0[v]", "-map", "[v]",
-                    "-c:v", "libx264", "-crf", "18", "-preset", "fast", "-pix_fmt", "yuv420p", joined], check=True)
+                    "-c:v", "h264_nvenc", "-preset", "p4", "-rc", "vbr", "-cq", "18", "-b:v", "0", "-pix_fmt", "yuv420p", joined], check=True)
     os.replace(joined, raw)
     os.remove(head)
     os.remove(part)
@@ -168,7 +168,7 @@ if MUSIC and (CLIP is None or CLIP[0] <= MUSIC_END):
 audio_filters.append("%samix=inputs=%d:normalize=0,apad[aout]" % (mix_in, n_mix))
 
 cmd += ["-filter_complex", video + ";" + ";".join(audio_filters), "-map", "[vout]", "-map", "[aout]",
-        "-c:v", "libx264", "-crf", "20", "-preset", "slow", "-pix_fmt", "yuv420p",
+        "-c:v", "h264_nvenc", "-preset", "p6", "-rc", "vbr", "-cq", "20", "-b:v", "0", "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "160k", "-t", "%.3f" % total, out]
 final = out
 if REMIX or HEAD_FINAL:
