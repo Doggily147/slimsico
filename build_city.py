@@ -26,7 +26,7 @@ if bpy.context.window:
     bpy.context.window.scene = scene
 random.seed(21)
 
-CITY_POS = Vector((-165.0, -165.0, 0.0))     # the far corner of the plate, away from the story
+CITY_POS = Vector((165.0, -165.0, 0.0))      # the front-right corner of the plate, away from the story (the built city is rotated so the gate faces the centre)
 R_CITY = 92.0                                 # the built-up radius
 R_WALL_IN, R_WALL_OUT, WALL_H = 98.0, 102.0, 14.0
 R_RING = 84.0                                 # the ring road

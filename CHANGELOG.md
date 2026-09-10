@@ -2,6 +2,13 @@
 
 All notable changes to slimsico. Newest first. Dates are commit dates.
 
+## 2026-09-10 - Music ends with beat 6; the city moves
+
+### Changed
+- The music bed now runs under beats 1-6 only and fades out at frame 1656 (`MUSIC_END` in `render_draft2.py`); beat 7 plays with its own cues alone.
+- The city moves from the far corner (-165, -165) to the front-right corner (165, -165), turned so the gate still faces the plate centre (`CITY_POS` in `build_city.py`; the built city's root empty was moved and rotated in the blend rather than rebuilt).
+- `render_draft2.py --remix` rebuilds just the sound on the finished video, and `--from N --head-final` splices a new tail onto the finished video when there is no raw render on this machine (the finished frames' subtitles are already burnt in, so only the new tail gets them).
+
 ## 2026-09-10 - Draft 2 rendered through beat 7
 
 ### Changed

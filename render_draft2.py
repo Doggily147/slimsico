@@ -5,7 +5,11 @@ quietly if one is placed at audio/ambient.* .
   python render_draft2.py            -> renders/draft2.mp4
 
 Needs ffmpeg on PATH. Pass --no-render to only redo the sound pass, or
---from N to render only frames N..end and splice them onto the kept raw render.
+--from N to render only frames N..end and splice them onto the kept raw render
+(add --head-final to splice onto the finished draft2.mp4 instead, when there is
+no raw render on this machine). --remix rebuilds just the sound on the finished
+video. --clip A B renders and mixes one frame range for review.
+The music bed runs under beats 1-6 only (MUSIC_END).
 """
 import os
 import subprocess
@@ -20,6 +24,7 @@ MUSIC = next((p for p in (os.path.join(ROOT, "audio", "ambient" + ext) for ext i
 FPS = 24
 
 # frames match build_draft2.py and build_draft2_beat4.py / beat5 / beat6
+MUSIC_END = 1656                  # the music bed runs under beats 1-6 only (fades out at the end of beat 6)
 F_END = 2680
 F_ADV, F_LOOM = 914, 1030
 SUBTITLES = [("Where am I?", 412, 452), ("I will walk around to find clues", 504, 558),
@@ -96,12 +101,25 @@ if "--clip" in sys.argv:
                         "--python-expr", "import bpy; bpy.context.scene.render.filepath = %r" % raw.replace("\\", "/"), "-a"],
                        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
-if CLIP is not None:
+REMIX = "--remix" in sys.argv
+HEAD_FINAL = "--head-final" in sys.argv
+if REMIX:
+    # the finished video is the source: no render, no subtitles (already burnt), fresh sound mix
+    src = os.path.join(RENDERS, "draft2_remix_src.mp4")
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", out, "-an", "-c:v", "copy", src], check=True)
+    raw = src
+    SUBTITLES = []
+if CLIP is not None or REMIX:
     pass
 elif "--from" in sys.argv:
     first = int(sys.argv[sys.argv.index("--from") + 1])
     part = os.path.join(RENDERS, "draft2_raw_part.mp4")
     head = os.path.join(RENDERS, "draft2_raw_head.mp4")
+    if HEAD_FINAL:
+        # keep the finished video's frames before the splice (their subtitles are burnt in already)
+        raw = os.path.join(RENDERS, "draft2_head_src.mp4")
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", out, "-an", "-c:v", "copy", raw], check=True)
+        SUBTITLES = [(t, a, b) for t, a, b in SUBTITLES if a >= first]
     subprocess.run([BLENDER, "-b", os.path.join(ROOT, "slimsico.blend"), "-S", "Scene", "--python", os.path.join(ROOT, "render_prep.py"), "-s", str(first), "-e", str(F_END),
                     "--python-expr", "import bpy; bpy.context.scene.render.filepath = %r" % part.replace("\\", "/"), "-a"],
                    check=True, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
@@ -141,9 +159,10 @@ for name, frame in SOUND_CUES:
     mix_in += "[a%d]" % inputs
     inputs += 1
 n_mix = inputs - 1
-if MUSIC:
+if MUSIC and (CLIP is None or CLIP[0] <= MUSIC_END):
     cmd += ["-stream_loop", "-1", "-i", MUSIC]
-    audio_filters.append("[%d:a]volume=0.32,atrim=0:%.2f,afade=t=in:d=1.5,afade=t=out:st=%.2f:d=2[music]" % (inputs, total, max(0, total - 2)))
+    music_end = min(total, max(0.0, (MUSIC_END - (CLIP[0] - 1 if CLIP else 0)) / FPS))
+    audio_filters.append("[%d:a]volume=0.32,atrim=0:%.2f,afade=t=in:d=1.5,afade=t=out:st=%.2f:d=2,apad[music]" % (inputs, music_end, max(0, music_end - 2)))
     mix_in += "[music]"
     n_mix += 1
 audio_filters.append("%samix=inputs=%d:normalize=0,apad[aout]" % (mix_in, n_mix))
@@ -151,5 +170,15 @@ audio_filters.append("%samix=inputs=%d:normalize=0,apad[aout]" % (mix_in, n_mix)
 cmd += ["-filter_complex", video + ";" + ";".join(audio_filters), "-map", "[vout]", "-map", "[aout]",
         "-c:v", "libx264", "-crf", "20", "-preset", "slow", "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "160k", "-t", "%.3f" % total, out]
+final = out
+if REMIX or HEAD_FINAL:
+    out = os.path.join(RENDERS, "draft2_new.mp4")
+    cmd[-1] = out
 subprocess.run(cmd, check=True)
+if out != final:
+    os.replace(out, final)
+    out = final
+    for tmp in (os.path.join(RENDERS, "draft2_remix_src.mp4"), os.path.join(RENDERS, "draft2_head_src.mp4")):
+        if os.path.exists(tmp):
+            os.remove(tmp)
 print("wrote", out, "%.2fs" % total, "| music:", "yes" if MUSIC else "none")
